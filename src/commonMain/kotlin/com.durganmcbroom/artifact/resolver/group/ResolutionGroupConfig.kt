@@ -18,7 +18,7 @@ public class ResolutionGroupConfig : ArtifactResolutionConfig<Nothing, Nothing>(
         private val provider: ResolutionProvider<C, ArtifactResolver<C, *, ArtifactResolver.ArtifactProcessor<D, *, *, O>>>
     ) {
         // Initialize configuration to be empty
-        private var configuration: C = newConfig()
+        internal var configuration: C = newConfig()
 
         // Transformers to ensure compatibility between different resolvers
         private val descriptionTransformers: MutableList<DescriptionTransformer<*, D>> = ArrayList()
@@ -35,9 +35,6 @@ public class ResolutionGroupConfig : ArtifactResolutionConfig<Nothing, Nothing>(
         }
 
         // Configures and sets a new configuration
-        public fun configure(configuration: C.() -> Unit): ResolutionBuilder<D, O, C> = also {
-            this.configuration = newConfig().apply(configuration)
-        }
 
         public fun addDescriptionTransformer(dt: DescriptionTransformer<*, D>): ResolutionBuilder<D, O, C> = also {
             descriptionTransformers.add(dt)
@@ -116,4 +113,8 @@ public class ResolutionGroupConfig : ArtifactResolutionConfig<Nothing, Nothing>(
             return parent.artifactOf(newDesc, newOptions, trace)
         }
     }
+}
+
+public fun <D: ArtifactMeta.Descriptor, O: ArtifactResolutionOptions, C: ArtifactResolutionConfig<D, O>> ResolutionGroupConfig.ResolutionBuilder<D, O, C>.configure(configuration: C.() -> Unit): ResolutionGroupConfig.ResolutionBuilder<D, O, C> = also {
+    this.configuration = newConfig().apply(configuration)
 }

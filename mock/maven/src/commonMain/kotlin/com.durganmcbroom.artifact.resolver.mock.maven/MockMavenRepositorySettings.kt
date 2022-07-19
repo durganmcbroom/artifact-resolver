@@ -85,6 +85,11 @@ public class MockMavenRepositorySettings(
         layout = MavenLocalLayout
     }
 
+    public fun useDefaultLayout(url: String) {
+        useBasicRepoReferencer()
+        layout = DefaultMockMavenLayout(url, preferredHash)
+    }
+
     override fun toString(): String {
         return "MavenRepositorySettings(layout='${layout.type}' preferredHash=$preferredHash, pluginProvider=$pluginProvider, repositoryReferencer=$repositoryReferencer)"
     }
