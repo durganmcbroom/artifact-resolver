@@ -1,6 +1,7 @@
 # Artifact Resolver
 
-*An API for parsing, loading, and resolving metadata about artifacts/dependencies from remote repositories. Comes with optional extra modules to support a simple version of Maven.*
+*An API for parsing, loading, and resolving artifacts and dependencies from remote repositories. Comes with optional
+extra modules to support loading from maven repositories.*
 
 ## Basic Usage
 
@@ -11,10 +12,11 @@ The Artifact Resolution API contains these main components:
   configuring Artifact resolvers.
 - **ArtifactResolver** : As the name suggests, this resolves artifacts. More specifically it creates metadata about
   artifacts and then is able to return a tree of artifacts and their transitive dependencies.
-- **ArtifactMeta** : Metadata about an artifact, specific to different repository types.
+- **ArtifactMeta** : Metadata about an artifact including: links to resources(jar etc.), information about transitive
+  dependencies and other repository specific data.
     - **Descriptor** : Information about where to find an artifact.
     - **TransitiveInfo** : Information about where to find transitive artifacts.
-- **Artifact** : A resolved artifact containing information about its metadata and children.
+- **Artifact** : A resolved artifact containing metadata and children.
 
 ### Examples
 
@@ -179,7 +181,8 @@ val graph = ArtifactGraph(ResolutionGrouping) {
 
 val customGraph = graph[MyCustomImpl]!! // We know its in there, dont have to check.
 val customResolver = customGraph.resolverFor {} // Get a processor from the resolver
-val artifact = customResolver.artifactOf("...") {} // And finally get our artifact! The grouping system will take care of all calls between our two repositories.
+val artifact =
+    customResolver.artifactOf("...") {} // And finally get our artifact! The grouping system will take care of all calls between our two repositories.
 ```
 
 ##### Java
