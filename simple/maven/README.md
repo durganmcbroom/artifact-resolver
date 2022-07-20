@@ -1,8 +1,7 @@
 # Simple Maven Artifact Resolver
 
-An Implementation of the Artifact Resolver API for maven. Note that this is a simple version of maven(does not use any
-Apache Maven dependencies) and contains no
-official maven code, so while very lightweight there are edge cases it cannot handle.
+An Implementation of the Artifact Resolver API for maven. Note that this is a simple version of maven (does not use any
+Apache Maven dependencies), so while very lightweight there are edge cases it cannot handle.
 
 ## Usage
 
