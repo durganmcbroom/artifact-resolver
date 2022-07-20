@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver
 
-public interface RepositoryHandler<D: ArtifactMeta.Descriptor, out M: ArtifactMeta<D, *>, out R: RepositorySettings> {
+public interface RepositoryHandler<D: ArtifactMetadata.Descriptor, out M: ArtifactMetadata<D, *>, out R: RepositorySettings> {
     public val settings: R
 
     public fun descriptorOf(name: String) : D?

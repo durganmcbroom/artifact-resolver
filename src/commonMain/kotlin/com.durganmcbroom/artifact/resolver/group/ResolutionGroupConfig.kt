@@ -2,20 +2,19 @@ package com.durganmcbroom.artifact.resolver.group
 
 import com.durganmcbroom.artifact.resolver.*
 
-public class ResolutionGroupConfig : ArtifactResolutionConfig<Nothing, Nothing>(
-) {
+public class ResolutionGroupConfig : ArtifactGraphConfig<Nothing, Nothing>() {
     // References from resolution providers to meta for those resolvers
-    private val _refs: MutableMap<ResolutionProvider.Key, ResolverMeta<*, *>> = HashMap()
-    internal val refs: Map<ResolutionProvider.Key, ResolverMeta<*, *>>
+    private val _refs: MutableMap<ArtifactGraphProvider.Key, ResolverMeta<*, *>> = HashMap()
+    internal val refs: Map<ArtifactGraphProvider.Key, ResolverMeta<*, *>>
         get() = _refs.toMap()
 
     // Starts the Resolution Builder
-    public fun <D : ArtifactMeta.Descriptor, O : ArtifactResolutionOptions, C : ArtifactResolutionConfig<D, O>> resolver(
-        provider: ResolutionProvider<C, ArtifactResolver<C, *, ArtifactResolver.ArtifactProcessor<D, *, *, O>>>,
+    public fun <D : ArtifactMetadata.Descriptor, O : ArtifactResolutionOptions, C : ArtifactGraphConfig<D, O>> graphOf(
+        provider: ArtifactGraphProvider<C, ArtifactGraph<C, *, ArtifactGraph.ArtifactResolver<D, *, *, O>>>,
     ): ResolutionBuilder<D, O, C> = ResolutionBuilder(provider)
 
-    public inner class ResolutionBuilder<D : ArtifactMeta.Descriptor, O : ArtifactResolutionOptions, C : ArtifactResolutionConfig<D, O>> internal constructor(
-        private val provider: ResolutionProvider<C, ArtifactResolver<C, *, ArtifactResolver.ArtifactProcessor<D, *, *, O>>>
+    public inner class ResolutionBuilder<D : ArtifactMetadata.Descriptor, O : ArtifactResolutionOptions, C : ArtifactGraphConfig<D, O>> internal constructor(
+        private val provider: ArtifactGraphProvider<C, ArtifactGraph<C, *, ArtifactGraph.ArtifactResolver<D, *, *, O>>>
     ) {
         // Initialize configuration to be empty
         internal var configuration: C = newConfig()
@@ -49,7 +48,10 @@ public class ResolutionGroupConfig : ArtifactResolutionConfig<Nothing, Nothing>(
         public fun register() {
             // Overrides the deReferencer from the configuration
             val deRefSet = runCatching { configuration.deReferencer = GroupedDeReferencer() }
-            check(deRefSet.isSuccess) { "Unable to override the deReferencer!" }
+            val graphSet = runCatching { configuration.graph = graph }
+
+            check(deRefSet.isSuccess) { "Unable to override the deReferencer." }
+            check(graphSet.isSuccess) { "Unable to override the artifact graph." }
 
             // Locks the configuration
             configuration.lock()
@@ -64,14 +66,14 @@ public class ResolutionGroupConfig : ArtifactResolutionConfig<Nothing, Nothing>(
     }
 
     // Meta
-    public data class ResolverMeta<D : ArtifactMeta.Descriptor, O : ArtifactResolutionOptions> internal constructor(
-        val config: ArtifactResolutionConfig<D, O>,
+    public data class ResolverMeta<D : ArtifactMetadata.Descriptor, O : ArtifactResolutionOptions> internal constructor(
+        val config: ArtifactGraphConfig<D, O>,
         val descTransformers: List<DescriptionTransformer<*, D>>,
         val optionTransformers: List<ResolutionOptionsTransformer<*, O>>
     )
 
     // The DeReferencer to use for all resolvers
-    private inner class GroupedDeReferencer<D : ArtifactMeta.Descriptor, O : ArtifactResolutionOptions>(
+    private inner class GroupedDeReferencer<D : ArtifactMetadata.Descriptor, O : ArtifactResolutionOptions>(
 //        private val metaFrom: ResolverMeta<D, O>
     ) : RepositoryDeReferencer<D, O> {
         @Suppress("UNCHECKED_CAST")
@@ -81,23 +83,23 @@ public class ResolutionGroupConfig : ArtifactResolutionConfig<Nothing, Nothing>(
 
             // Gets a new resolver
             val resolver =
-                (ref.provider as ResolutionProvider<ArtifactResolutionConfig<*, *>, ArtifactResolver<*, RepositorySettings, *>>).provide(
+                (ref.provider as ArtifactGraphProvider<ArtifactGraphConfig<*, *>, ArtifactGraph<*, RepositorySettings, *>>).provide(
                     meta.config
                 )
             // Gets a new processor
-            val processor: ArtifactResolver.ArtifactProcessor<*, *, *, *> = resolver.processorFor(ref.settings)
+            val processor: ArtifactGraph.ArtifactResolver<*, *, *, *> = resolver.resolverFor(ref.settings)
 
             // Returns a new repository proxy. This proxy wraps all requests repositories and transforms requests to them (outgoing from the de-references point of view).
             return RepositoryProxy(
-                processor as ArtifactResolver.ArtifactProcessor<ArtifactMeta.Descriptor, *, *, ArtifactResolutionOptions>,
-                meta as ResolverMeta<ArtifactMeta.Descriptor, ArtifactResolutionOptions>
+                processor as ArtifactGraph.ArtifactResolver<ArtifactMetadata.Descriptor, *, *, ArtifactResolutionOptions>,
+                meta as ResolverMeta<ArtifactMetadata.Descriptor, ArtifactResolutionOptions>
             )
         }
     }
 
     // A proxied Artifact Repository which will transform all incoming requests into recognizable formats. The types D and O represent outgoing requests from the caller(which
     // are transformed) while types DT and OT represent incoming requests to teh parent from types D and O.
-    private inner class RepositoryProxy<D : ArtifactMeta.Descriptor, O : ArtifactResolutionOptions, DT : ArtifactMeta.Descriptor, OT : ArtifactResolutionOptions>(
+    private inner class RepositoryProxy<D : ArtifactMetadata.Descriptor, O : ArtifactResolutionOptions, DT : ArtifactMetadata.Descriptor, OT : ArtifactResolutionOptions>(
         private val parent: ArtifactRepository<DT, OT>,
         private val metaTo: ResolverMeta<DT, OT>
     ) : ArtifactRepository<D, O> {
@@ -115,6 +117,8 @@ public class ResolutionGroupConfig : ArtifactResolutionConfig<Nothing, Nothing>(
     }
 }
 
-public fun <D: ArtifactMeta.Descriptor, O: ArtifactResolutionOptions, C: ArtifactResolutionConfig<D, O>> ResolutionGroupConfig.ResolutionBuilder<D, O, C>.configure(configuration: C.() -> Unit): ResolutionGroupConfig.ResolutionBuilder<D, O, C> = also {
+public fun <D : ArtifactMetadata.Descriptor, O : ArtifactResolutionOptions, C : ArtifactGraphConfig<D, O>> ResolutionGroupConfig.ResolutionBuilder<D, O, C>.configure(
+    configuration: C.() -> Unit
+): ResolutionGroupConfig.ResolutionBuilder<D, O, C> = also {
     this.configuration = newConfig().apply(configuration)
 }

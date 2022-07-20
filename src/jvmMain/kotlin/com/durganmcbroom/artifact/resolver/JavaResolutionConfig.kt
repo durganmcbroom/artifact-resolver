@@ -4,4 +4,4 @@ package com.durganmcbroom.artifact.resolver
 
 import java.util.function.Consumer
 
-public fun <T: ArtifactResolutionConfig<*,*>> config(provider: ResolutionProvider<T, *>, consumer: Consumer<T>): T = provider.emptyConfig().also(consumer::accept)
+public fun <T: ArtifactGraphConfig<*,*>> config(provider: ArtifactGraphProvider<T, *>, consumer: Consumer<T>): T = provider.emptyConfig().also(consumer::accept)

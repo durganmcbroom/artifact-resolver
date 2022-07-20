@@ -2,11 +2,11 @@
 
 package com.durganmcbroom.artifact.resolver.group
 
-import com.durganmcbroom.artifact.resolver.ArtifactMeta
+import com.durganmcbroom.artifact.resolver.ArtifactMetadata
 import com.durganmcbroom.artifact.resolver.ArtifactResolutionOptions
 import kotlin.reflect.KClass
 
-public fun <O : ArtifactMeta.Descriptor, I : ArtifactMeta.Descriptor> descTransformer(
+public fun <O : ArtifactMetadata.Descriptor, I : ArtifactMetadata.Descriptor> descTransformer(
     i: Class<I>,
     o: Class<O>,
     transformer: java.util.function.Function<I, O>
