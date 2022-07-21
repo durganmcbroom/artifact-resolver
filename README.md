@@ -22,39 +22,21 @@ The Artifact Resolution API contains these main components:
 
 #### Kotlin
 
-First, we need to create a `ArtifactGraph`:
+This is a fully working super simple example. Here I choose to exclude any scopes that are not `compile`, `runtime`
+or `import`, so we dont have to worry about pulling in all the testing libraries.
 
-*Assuming we are using the simple maven library, this is a working example*
+*This requires the simple maven library*
 
 ```kotlin
-val graph = ArtifactGraph(SimpleMaven) {
-    // ... configure the graph ...
-    // eg. add a de-referencer
-}
+val graph = ArtifactGraph(SimpleMaven)
 
-// Then, we can use the `ArtifactGraph` to obtain a `ArtifactGraph$ArtifactResolver`:
 val resolver = graph.resolverFor {
-    // ... configure the processor ...
-    // eg. add a repository
     useMavenCentral()
 }
 
-// Lastly we can use our resolve to resolve an artifact:
-
-val name = "<NAME>" // Artifact name, eg. `groupId:artifactId:version`
-
-// Resolve a descriptor (format depends on underlying implementation)
-val desc = resolver.descriptorOf(name)
-val meta = resolver.metaOf(desc)
-
-val artifact = resolver.artifactOf(meta, /* options */)
-
-// ~~ OR ~~
-
-// Using the convenience methods
-val artifact = resolver.artifactOf(name) {
-    // ... configure the artifact ...
-    // Eg. Exclude artifacts, filter scopes etc.
+// Dont worry, spring context isnt *too* giant...
+val artifact = processor.artifactOf("org.springframework:spring-context:5.3.22") {
+    includeScopes("compile", "runtime", "import")
 }
 ```
 
@@ -66,48 +48,22 @@ Using Java is slightly more verbose but is still fully supported.
 
 ```java
 public class MyArtifactTests {
-    public ArtifactGraph getGraph() {
-        final var config = SimpleMaven.INSTANCE.emptyConfig();
+    @Nullable
+    public Artifact getSpringContextArtifact() {
+        final var resolver = ArtifactGraphs.newGraph(SimpleMaven.INSTANCE);
 
-        // Configure config
-
-        return ArtifactGraphs.newGraph(SimpleMaven.INSTANCE, config);
-
-        // ~~ OR ~~
-
-        // You can also configure the config using the following convenience
-        // method. This technique is less helpful here, but slightly easier when
-        // using groupings.
-
-        return ArtifactGraphs.newGraph(SimpleMaven.INSTANCE, JavaResolutionConfig.config(SimpleMaven.INSTANCE, (config) -> {
-            // Configure
-        }));
-    }
-
-    // Then we get our Processor
-    public ArtifactResolver getResolver() {
-        final var graph = getGraph();
-
-        final var settings = graph.newSettings();
-        // configure settings
-        // ...
+        final var settings = resolver.newRepoSettings();
         settings.useMavenCentral();
 
-        return graph.resolverFor(settings);
-    }
-
-    // Then resolve an artifact
-    @Nullable
-    public Artifact getArtifact(String name) {
-        final var resolver = getResolver();
-
-        // Going straight to convenience methods
-
+        var resolver = resolver.resolverFor(settings);
         final var options = resolver.emptyOptions();
-        // Configure options
-        // ...
+        options.includeScopes("compile", "runtime", "import");
 
-        return resolver.artifactOf(name, options);
+        var artifactOrNull = resolver.artifactOf("org.springframework:spring-context:5.3.22", options);
+
+        assert artifactOrNull != null;
+
+        return artifactOrNull;
     }
 }
 ```
@@ -136,14 +92,16 @@ transform them.
 ```kotlin
 // As usual we first create our graph, this time using the `ResolutionGroup` provider
 
-val graph = ArtifactGraph(ResolutionGrouping) {
-    // With resolution groupings most of the heavy lifting comes with the resolver configuration.
+val graph = ArtifactGraph(ResolutionGroup) {
+    // With resolution groups most of the heavy lifting comes with the resolver configuration.
 
-    // To start creating an actual graph for us to use we call the #graphOf method on our configuration
+    // To start creating an actual graph inside this group, we call the #graphOf method on our configuration
     graphOf(SimpleMaven)
         // Now we have to add transformers, these receive descriptors and output a descriptor that 
-        // the given resolver can read. For every repository in the group that outputs a descriptor
-        // not usable by this graph, a transformer is needed.
+        // the given resolver can read. Eg. Maven doesnt know the class MyCustomDesc, so we have 
+        // to add a transform which converts this type into something Maven can deal with. For every 
+        // repository in the group that outputs a descriptor not usable by *this* graph  (ie. SimpleMaven), 
+        // a transformer is needed.
         .addDescriptionTransformer(MyCustomDesc::class, SimpleMavenDescriptor::class) {
             // Do work
         }
@@ -152,8 +110,8 @@ val graph = ArtifactGraph(ResolutionGrouping) {
         .addResolutionOptionsTransformer(MyCustomOptions::class, SimpleMavenArtifactResolutionOptions::class) {
             // Do work
         }
-        // Finally we can configure the graph, this can happen at any time however I choose to
-        // include it at the end.
+        // Finally we can (optionally, if it has settings to configure) configure the graph, this can 
+        // happen at any time however, I chose to include it at the end.
         .configure {
             // Configure
         }
@@ -166,15 +124,10 @@ val graph = ArtifactGraph(ResolutionGrouping) {
     // I'll include one more example, no comments though.
 
     graphOf(MyCustomImpl)
-        .addDescriptionTransformer(SimpleMavenDescriptor::class, MyCustomDesc::class) {
-            // Do work
-        }
-        .addResolutionOptionsTransformer(SimpleMavenArtifactResolutionOptions::class, MyCustomOptions::class) {
-            // Do work
-        }
-        .configure {
-            // Configure
-        }.register()
+        .addDescriptionTransformer(SimpleMavenDescriptor::class, MyCustomDesc::class) {}
+        .addResolutionOptionsTransformer(SimpleMavenArtifactResolutionOptions::class, MyCustomOptions::class) {}
+        .configure {}
+        .register()
 }
 
 // Great! We have setup a grouping graph! Now we have to retrieve an actual implementation of a graph from it to use.

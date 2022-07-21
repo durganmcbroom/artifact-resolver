@@ -24,9 +24,8 @@ class ResolutionTest {
             useMavenCentral()
         }
 
-        val artifact = processor.artifactOf("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.6") {
-            includeScopes("compile", "runtime", "import", "test")
-            exclude("stax-ex")
+        val artifact = processor.artifactOf("org.springframework:spring-context:5.3.22") {
+            includeScopes("compile", "runtime", "import")
         }
 
         artifact?.prettyPrint()

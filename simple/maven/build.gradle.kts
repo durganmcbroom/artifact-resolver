@@ -1,6 +1,7 @@
 plugins {
     kotlin("multiplatform")
-
+//    id("maven-publish")
+//    id("org.jetbrains.dokka")
 }
 
 group = "com.durganmcbroom"
@@ -73,3 +74,39 @@ kotlin {
     }
 }
 
+
+publishing {
+    publications.withType<MavenPublication> {
+        artifact(tasks["javadocJar"])
+
+        artifactId = "artifact-resolver-$artifactId"
+
+        pom {
+            name.set("Artifact Resolver - Simple Maven")
+            description.set("An Implementation of the Artifact Resolver API for Maven.")
+            url.set("https://github.com/durganmcbroom/artifact-resolver")
+
+            packaging = "jar"
+
+            developers {
+                developer {
+                    id.set("durganmcbroom")
+                    name.set("Durgan McBroom")
+                }
+            }
+
+            licenses {
+                license {
+                    name.set("MIT License")
+                    url.set("https://opensource.org/licenses/MIT")
+                }
+            }
+
+            scm {
+                connection.set("scm:git:git://github.com/durganmcbroom/artifact-resolver")
+                developerConnection.set("scm:git:ssh://github.com:durganmcbroom/artifact-resolver.git")
+                url.set("https://github.com/durganmcbroom/artifact-resolver")
+            }
+        }
+    }
+}
