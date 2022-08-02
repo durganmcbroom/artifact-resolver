@@ -16,7 +16,8 @@ public data class SimpleMavenDescriptor(
     val version: String,
     val classifier: String?
 ) : ArtifactMetadata.Descriptor {
-    override val name: String by ::artifact
+    override val name: String
+        get() = toString()
 
     public companion object {
         public fun parseDescription(name: String): SimpleMavenDescriptor? =
