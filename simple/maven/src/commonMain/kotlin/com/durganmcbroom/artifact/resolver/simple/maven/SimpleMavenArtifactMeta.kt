@@ -5,7 +5,7 @@ import com.durganmcbroom.artifact.resolver.CheckedResource
 import com.durganmcbroom.artifact.resolver.RepositoryReference
 
 public class SimpleMavenArtifactMeta(
-    desc: Descriptor,
+    desc: SimpleMavenDescriptor,
     resource: CheckedResource?,
     transitives: List<SimpleMavenTransitive>
 ) : ArtifactMetadata<SimpleMavenDescriptor, SimpleMavenTransitive>(desc, resource, transitives)
