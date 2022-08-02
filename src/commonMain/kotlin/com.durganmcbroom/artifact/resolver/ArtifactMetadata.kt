@@ -1,7 +1,7 @@
 package com.durganmcbroom.artifact.resolver
 
 public open class ArtifactMetadata<D: ArtifactMetadata.Descriptor, T: ArtifactMetadata.TransitiveInfo>(
-    public val desc: Descriptor,
+    public val desc: D,
     public val resource: CheckedResource?,
     public val transitives: List<T>
 ) {
