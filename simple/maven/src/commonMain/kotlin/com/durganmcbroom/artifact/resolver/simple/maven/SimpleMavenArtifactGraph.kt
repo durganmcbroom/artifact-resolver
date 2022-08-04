@@ -67,7 +67,7 @@ public class SimpleMavenArtifactGraph(
             _trace: ArtifactRepository.ArtifactTrace?
         ): Artifact? {
             val trace = ArtifactRepository.ArtifactTrace(_trace, meta.desc)
-            val transitives: List<SimpleMavenTransitive> = getTransitives(trace, meta, options)
+            val transitives: List<SimpleMavenTransitiveInfo> = getTransitives(trace, meta, options)
 
             val artifacts = transitives.map { t ->
                 artifactFromTransitive(t, trace, options)
@@ -78,7 +78,7 @@ public class SimpleMavenArtifactGraph(
         }
 
         private fun artifactFromTransitive(
-            t: SimpleMavenTransitive,
+            t: SimpleMavenTransitiveInfo,
             trace: ArtifactRepository.ArtifactTrace,
             options: SimpleMavenArtifactResolutionOptions
         ): Artifact? {
@@ -95,10 +95,10 @@ public class SimpleMavenArtifactGraph(
             trace: ArtifactRepository.ArtifactTrace,
             meta: SimpleMavenArtifactMeta,
             options: SimpleMavenArtifactResolutionOptions
-        ): List<SimpleMavenTransitive> {
+        ): List<SimpleMavenTransitiveInfo> {
             if (trace.isCyclic(meta.desc)) throw IllegalStateException("Cyclic artifacts found in trace: $trace")
 
-            val transitives: List<SimpleMavenTransitive> =
+            val transitives: List<SimpleMavenTransitiveInfo> =
                 if (!options.isTransitive) listOf()
                 else meta.transitives.filterNot {
                     options.excludes.contains(it.desc.artifact)

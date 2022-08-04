@@ -34,7 +34,7 @@ public open class SimpleMavenRepositoryHandler(
                 pom.packaging
             ) else null,
             dependencies.map {
-                SimpleMavenTransitive(
+                SimpleMavenTransitiveInfo(
                     SimpleMavenDescriptor(
                         it.groupId,
                         it.artifactId,

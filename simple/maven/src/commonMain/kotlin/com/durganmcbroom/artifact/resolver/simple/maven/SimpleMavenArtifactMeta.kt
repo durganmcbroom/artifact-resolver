@@ -7,8 +7,8 @@ import com.durganmcbroom.artifact.resolver.RepositoryReference
 public class SimpleMavenArtifactMeta(
     desc: SimpleMavenDescriptor,
     resource: CheckedResource?,
-    transitives: List<SimpleMavenTransitive>
-) : ArtifactMetadata<SimpleMavenDescriptor, SimpleMavenTransitive>(desc, resource, transitives)
+    transitives: List<SimpleMavenTransitiveInfo>
+) : ArtifactMetadata<SimpleMavenDescriptor, SimpleMavenTransitiveInfo>(desc, resource, transitives)
 
 public data class SimpleMavenDescriptor(
     val group: String,
@@ -28,7 +28,7 @@ public data class SimpleMavenDescriptor(
     override fun toString(): String = "$group:$artifact:$version${classifier?.let { ":$it" } ?: ""}"
 }
 
-public data class SimpleMavenTransitive(
+public data class SimpleMavenTransitiveInfo(
     override val desc: SimpleMavenDescriptor,
     override val resolutionCandidates: List<RepositoryReference<*>>,
     val scope: String
