@@ -47,7 +47,7 @@ class MockTest {
     ) : ArtifactMetadata.TransitiveInfo
 
     class MockArtifactMeta(
-        desc: Descriptor, resource: CheckedResource, transitives: List<MockTransitive>
+        desc: MockDescriptor, resource: CheckedResource, transitives: List<MockTransitive>
     ) : ArtifactMetadata<MockDescriptor, MockTransitive>(desc, resource, transitives)
 
     class MockRepositoryHandler(override val settings: MockRepositorySettings) :

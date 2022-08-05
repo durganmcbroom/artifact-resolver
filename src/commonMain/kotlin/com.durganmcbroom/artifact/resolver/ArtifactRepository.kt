@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver
 
-public interface ArtifactRepository<in D : ArtifactMetadata.Descriptor, O : ArtifactResolutionOptions> {
+public interface ArtifactRepository<in D : ArtifactMetadata.Descriptor, in O : ArtifactResolutionOptions> {
     public fun artifactOf(desc: D, options: O, trace: ArtifactTrace?): Artifact?
 
     public data class ArtifactTrace(
