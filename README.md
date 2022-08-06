@@ -35,7 +35,7 @@ val resolver = graph.resolverFor {
 }
 
 // Dont worry, spring context isnt *too* giant...
-val artifact = processor.artifactOf("org.springframework:spring-context:5.3.22") {
+val artifact = resolver.artifactOf("org.springframework:spring-context:5.3.22") {
     includeScopes("compile", "runtime", "import")
 }
 ```
@@ -48,7 +48,6 @@ Using Java is slightly more verbose but is still fully supported.
 
 ```java
 public class MyArtifactTests {
-    @Nullable
     public Artifact getSpringContextArtifact() {
         final var resolver = ArtifactGraphs.newGraph(SimpleMaven.INSTANCE);
 
