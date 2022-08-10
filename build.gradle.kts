@@ -23,6 +23,12 @@ kotlin {
             useJUnitPlatform()
         }
 
+        java {
+            toolchain {
+                languageVersion.set(JavaLanguageVersion.of(17))
+            }
+        }
+
         val main by compilations.getting {
             compileKotlinTask.destinationDirectory.set(compileJavaTaskProvider!!.get().destinationDirectory.asFile.get())
 

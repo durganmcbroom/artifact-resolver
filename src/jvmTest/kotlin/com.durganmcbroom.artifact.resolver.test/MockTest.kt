@@ -4,6 +4,7 @@ import com.durganmcbroom.artifact.resolver.*
 import com.durganmcbroom.artifact.resolver.group.ResolutionGroup
 import com.durganmcbroom.artifact.resolver.group.addResolutionOptionsTransformer
 import com.durganmcbroom.artifact.resolver.group.addDescriptionTransformer
+import com.durganmcbroom.artifact.resolver.group.graphOf
 import kotlin.test.Test
 
 class MockTest {
@@ -23,13 +24,7 @@ class MockTest {
         val resolver = ArtifactGraph(ResolutionGroup) {
             graphOf(Mock).register()
 
-            graphOf(SecondMock).addDescriptionTransformer(MockDescriptor::class, MockDescriptor::class) {
-                it
-            }.addResolutionOptionsTransformer(
-                MockArtifactResolutionOptions::class, MockArtifactResolutionOptions::class
-            ) {
-                it
-            }.register()
+            graphOf(SecondMock).register()
         }
 
         val processor = resolver[Mock]!!.resolverFor(MockRepositorySettings())
@@ -47,7 +42,7 @@ class MockTest {
     ) : ArtifactMetadata.TransitiveInfo
 
     class MockArtifactMeta(
-        desc: Descriptor, resource: CheckedResource, transitives: List<MockTransitive>
+        desc: MockDescriptor, resource: CheckedResource, transitives: List<MockTransitive>
     ) : ArtifactMetadata<MockDescriptor, MockTransitive>(desc, resource, transitives)
 
     class MockRepositoryHandler(override val settings: MockRepositorySettings) :

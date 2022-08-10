@@ -94,7 +94,10 @@ transform them.
 val graph = ArtifactGraph(ResolutionGroup) {
     // With resolution groups most of the heavy lifting comes with the resolver configuration.
 
-    // To start creating an actual graph inside this group, we call the #graphOf method on our configuration
+    // To start creating an actual graph inside this group, we call the #graphOf method 
+    // on our configuration. In this case we are using the inline reifed extension function,
+    // You could instead call 
+    // `#graphOf(SimpleMaven, SimpleMavenDescriptor::class, SimpleMavenArtifactResolutionOptions::class)`
     graphOf(SimpleMaven)
         // Now we have to add transformers, these receive descriptors and output a descriptor that 
         // the given resolver can read. Eg. Maven doesnt know the class MyCustomDesc, so we have 
@@ -146,7 +149,8 @@ class MyGroupingTests {
     public void createResolver() {
         val config = ResolutionGrouping.INSTANCE;
 
-        config.resolver(SimpleMaven.INSTANCE)
+        // When registering the graph we have to provide our description type and options type. 
+        config.graphOf(SimpleMaven.INSTANCE, MyCustomDesc.class, MyCustomOptions.class)
                 // We add a description transformer in the same way as before, however now we also add in the call `JavaTransformers#descTransformer` 
                 // with the types we are going to transform and a transformer.
                 .addDescriptionTransformer(JavaTransformers.descTransformer(MyCustomDesc.class, SimpleMavenDescriptor.class, (in) -> {
@@ -161,7 +165,7 @@ class MyGroupingTests {
                 })).register();
 
         // Configure second graph
-        config.resolver(MyCustomImpl.INSTANCE)
+        config.graphOf(MyCustomImpl.INSTANCE, SimpleMavenDescriptor.class, SimpleMavenArtifactResolutionOptions.class)
                 .addDescriptionTransformer(JavaTransformers.descTransformer(SimpleMavenDescriptor.class, MyCustomDesc.class, (in) -> {
                     // Do work
                 })).addResolutionOptionsTransformer(JavaTransformers.resolutionOptionsTransformer(SimpleMavenArtifactResolutionOptions.class, MyCustomOptions.class, (in) -> {
