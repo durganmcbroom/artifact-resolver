@@ -4,10 +4,11 @@ module artifact.resolver.simple.maven {
     requires com.fasterxml.jackson.kotlin;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.dataformat.xml;
-//    requires kotlinx.coroutines.core.jvm;
 
     exports com.durganmcbroom.artifact.resolver.simple.maven;
     exports com.durganmcbroom.artifact.resolver.simple.maven.layout;
     exports com.durganmcbroom.artifact.resolver.simple.maven.plugin;
     exports com.durganmcbroom.artifact.resolver.simple.maven.pom;
+
+    opens com.durganmcbroom.artifact.resolver.simple.maven.pom to com.fasterxml.jackson.databind;
 }
