@@ -21,6 +21,8 @@ public open class DefaultSimpleMavenLayout(
             run {
                val ending = when(checksumType) {
                     HashType.SHA1 -> "sha1"
+                    HashType.SHA256 -> "sha256"
+                    HashType.SHA512 -> "sha512"
                     HashType.MD5 -> "md5"
                 }
 

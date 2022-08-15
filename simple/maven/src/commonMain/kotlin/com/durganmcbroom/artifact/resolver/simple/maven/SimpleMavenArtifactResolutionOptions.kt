@@ -2,7 +2,7 @@ package com.durganmcbroom.artifact.resolver.simple.maven
 
 import com.durganmcbroom.artifact.resolver.ArtifactResolutionOptions
 
-public class SimpleMavenArtifactResolutionOptions(
+public open class SimpleMavenArtifactResolutionOptions(
     isTransitive: Boolean = true,
     processAsync: Boolean = true,
     private val _excludes: MutableSet<String> = HashSet(),

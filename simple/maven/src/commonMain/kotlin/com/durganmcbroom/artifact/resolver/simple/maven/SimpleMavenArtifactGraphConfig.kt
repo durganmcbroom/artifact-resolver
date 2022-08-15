@@ -3,7 +3,7 @@ package com.durganmcbroom.artifact.resolver.simple.maven
 import com.durganmcbroom.artifact.resolver.ArtifactGraphConfig
 import com.durganmcbroom.artifact.resolver.RepositoryDeReferencer
 
-public class SimpleMavenArtifactGraphConfig : ArtifactGraphConfig<SimpleMavenDescriptor, SimpleMavenArtifactResolutionOptions>() {
+public open class SimpleMavenArtifactGraphConfig : ArtifactGraphConfig<SimpleMavenDescriptor, SimpleMavenArtifactResolutionOptions>() {
     init {
         deReferencer = RepositoryDeReferencer { ref ->
             val resolver = if (ref.provider is SimpleMaven)

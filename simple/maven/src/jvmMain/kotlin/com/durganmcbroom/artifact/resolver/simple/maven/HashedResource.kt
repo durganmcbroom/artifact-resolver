@@ -30,6 +30,8 @@ public actual class HashedResource actual constructor(
         val digest = MessageDigest.getInstance(
             when (hashType) {
                 HashType.SHA1 -> "SHA1"
+                HashType.SHA256 -> "SHA256"
+                HashType.SHA512 -> "SHA512"
                 HashType.MD5 -> "MD5"
             }
         )

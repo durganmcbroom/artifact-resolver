@@ -14,7 +14,10 @@ public expect fun hashedResourceOrNull(
     checkURI: String
 ) : HashedResource?
 
+// All used hash types in maven
 public enum class HashType {
     SHA1,
+    SHA256,
+    SHA512,
     MD5,
 }

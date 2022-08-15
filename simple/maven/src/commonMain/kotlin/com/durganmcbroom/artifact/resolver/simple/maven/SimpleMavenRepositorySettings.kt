@@ -8,7 +8,7 @@ import com.durganmcbroom.artifact.resolver.simple.maven.plugin.SimplePluginConfi
 import com.durganmcbroom.artifact.resolver.simple.maven.plugin.SimplePluginProvider
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomRepository
 
-public class SimpleMavenRepositorySettings(
+public open class SimpleMavenRepositorySettings(
     _preferredHash: HashType = HashType.SHA1,
     _pluginProvider: SimplePluginProvider = DelegatingMockPluginProvider(),
     _pomRepositoryReferencer: PomRepositoryReferencer = DelegatingPomRepositoryReferencer(),
@@ -37,41 +37,11 @@ public class SimpleMavenRepositorySettings(
     public fun useBasicRepoReferencer() {
         if (!isBasicReferencerInstalled) {
             isBasicReferencerInstalled = true
-            installPomRepoReferencer(object : PomRepositoryReferencer {
-                override fun reference(repo: PomRepository): RepositoryReference<*>? = when (repo.layout) {
-                    "default" -> RepositoryReference(
-                        SimpleMaven,
-                        SimpleMavenRepositorySettings(
-                            preferredHash,
-                            pluginProvider,
-                            repositoryReferencer,
-                            DefaultSimpleMavenLayout(
-                                repo.url,
-                                preferredHash
-                            )
-                        )
-                    )
-                    "snapshot" -> RepositoryReference(
-                        SimpleMaven,
-                        SimpleMavenRepositorySettings(
-                            preferredHash,
-                            pluginProvider,
-                            repositoryReferencer,
-                            SnapshotSimpleMavenLayout(
-                                repo.url,
-                                preferredHash
-                            )
-                        )
-                    )
-                    else -> null
-                }
-
-                override fun referenceLayout(repo: PomRepository): SimpleMavenRepositoryLayout? = when(repo.layout) {
-                    "default" -> DefaultSimpleMavenLayout(repo.url, preferredHash)
-                    "snapshot" -> SnapshotSimpleMavenLayout(repo.url, preferredHash)
-                    else -> null
-                }
-            })
+            installPomRepoReferencer(SimpleMavenPomRepositoryReferencer(
+                preferredHash,
+                pluginProvider,
+                repositoryReferencer
+            ))
         }
     }
 
@@ -90,8 +60,13 @@ public class SimpleMavenRepositorySettings(
         layout = DefaultSimpleMavenLayout(url, preferredHash)
     }
 
+    public fun useSnapshotLayout(url: String) {
+        useBasicRepoReferencer()
+        layout = SnapshotSimpleMavenLayout(url, preferredHash)
+    }
+
     override fun toString(): String {
-        return "MavenRepositorySettings(layout='${layout.type}' preferredHash=$preferredHash, pluginProvider=$pluginProvider, repositoryReferencer=$repositoryReferencer)"
+        return "SimpleMavenRepositorySettings(preferredHash=$preferredHash, pluginProvider=$pluginProvider, repositoryReferencer=$repositoryReferencer, layout=$layout)"
     }
 
     private class DelegatingMockPluginProvider(
