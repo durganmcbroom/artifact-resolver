@@ -13,7 +13,7 @@ public class SnapshotSimpleMavenLayout(url: String, preferredHash: HashType) : D
         classifier: String?,
         type: String
     ): CheckedResource? {
-        val snapshots = parseSnapshotMeta(versionMetaOf(groupId, artifactId, version) ?: return null)
+        val snapshots = parseSnapshotMetadata(versionMetaOf(groupId, artifactId, version) ?: return null)
         val artifactVersion = snapshots[ArtifactAddress(classifier, type)] ?: return null
 
         val s = "${artifactId}-${artifactVersion}${classifier?.let { "-$it" } ?: ""}.$type"
@@ -29,4 +29,4 @@ internal data class ArtifactAddress(
     val type: String
 )
 
-internal expect fun parseSnapshotMeta(resource: CheckedResource): Map<ArtifactAddress, String>
+internal expect fun parseSnapshotMetadata(resource: CheckedResource): Map<ArtifactAddress, String>

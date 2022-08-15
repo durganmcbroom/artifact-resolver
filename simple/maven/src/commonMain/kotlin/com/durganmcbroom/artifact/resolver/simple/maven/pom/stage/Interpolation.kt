@@ -14,21 +14,6 @@ internal class PropertyReplacer(
         matchAsProperty()?.let { p ->
             sources.firstNotNullOfOrNull { it.properties[p] }
         }?.ifAsProperty() ?: this
-//
-//    fun <T : Any> replaceProperties(any: T): T {
-//        val kClass: KClass<T> = any::class as KClass<T>
-//
-//        check(kClass.isData)
-//
-//        val primaryConstructor = checkNotNull(kClass.primaryConstructor)
-//
-//        val arguments = primaryConstructor.parameters
-//            .map { prop -> kClass.memberProperties.find { it.name == prop.name }!! }
-//            .map { it.get(any) }
-//            .map { if (it is String) it.ifAsProperty() else it }
-//
-//        return primaryConstructor.call(*arguments.toTypedArray())
-//    }
 
     companion object {
         fun <R> of(vararg sources: PomPropertySource, block: PropertyReplacer.() -> R): R =

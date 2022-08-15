@@ -54,7 +54,7 @@ class MockTest {
         RepositoryHandler<MockDescriptor, MockArtifactMeta, MockRepositorySettings> {
         override fun descriptorOf(name: String): MockDescriptor = MockDescriptor(name)
 
-        override fun metaOf(descriptor: MockDescriptor): MockArtifactMeta {
+        override fun metadataOf(descriptor: MockDescriptor): MockArtifactMeta {
             return MockArtifactMeta(
                 descriptor, object : CheckedResource {
                     override fun get(): Sequence<Byte> {
@@ -81,7 +81,8 @@ class MockTest {
         override fun resolverFor(settings: MockRepositorySettings): MockArtifactProcessor = MockArtifactProcessor(
             MockRepositoryHandler(
                 MockRepositorySettings()
-            ), config.deReferencer, config.graph,
+            ),
+            config.deReferencer, config.graph,
         )
 
         override fun newRepoSettings(): MockRepositorySettings = MockRepositorySettings()
@@ -91,17 +92,18 @@ class MockTest {
 
     class MockArtifactProcessor(
         repository: RepositoryHandler<MockDescriptor, MockArtifactMeta, MockRepositorySettings>,
-        val deReferencer: RepositoryDeReferencer<MockDescriptor, MockArtifactResolutionOptions>,
+        private val deReferencer: RepositoryDeReferencer<MockDescriptor, MockArtifactResolutionOptions>,
         graphController: ArtifactGraph.GraphController,
 
-        ) : ArtifactGraph.ArtifactResolver<MockDescriptor, MockArtifactMeta, MockRepositorySettings, MockArtifactResolutionOptions>(
-        repository, graphController,
-    ) {
+        ) :
+        ArtifactGraph.ArtifactResolver<MockDescriptor, MockArtifactMeta, MockRepositorySettings, MockArtifactResolutionOptions>(
+            repository, graphController,
+        ) {
         override fun emptyOptions(): MockArtifactResolutionOptions = MockArtifactResolutionOptions()
         override fun resolve(
-            meta: MockArtifactMeta, options: MockArtifactResolutionOptions, trace: ArtifactRepository.ArtifactTrace?
+            metadata: MockArtifactMeta, options: MockArtifactResolutionOptions, trace: ArtifactRepository.ArtifactTrace?
         ): Artifact {
-            return Artifact(meta, meta.transitives.mapNotNull { t ->
+            return Artifact(metadata, metadata.transitives.mapNotNull { t ->
                 t.resolutionCandidates.firstNotNullOfOrNull {
                     deReferencer.deReference(it)?.artifactOf(t.desc, options, trace)
                 }

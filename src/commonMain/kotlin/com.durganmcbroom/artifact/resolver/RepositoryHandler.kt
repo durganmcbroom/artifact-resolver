@@ -5,5 +5,5 @@ public interface RepositoryHandler<D: ArtifactMetadata.Descriptor, out M: Artifa
 
     public fun descriptorOf(name: String) : D?
 
-    public fun metaOf(descriptor: D) : M?
+    public fun metadataOf(descriptor: D) : M?
 }

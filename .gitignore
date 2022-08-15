@@ -4,4 +4,3 @@
 **/build
 .gradle
 out
-gradle.properties

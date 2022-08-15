@@ -3,11 +3,11 @@ package com.durganmcbroom.artifact.resolver.simple.maven
 import com.durganmcbroom.artifact.resolver.*
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
 
-public class SimpleMavenArtifactGraph(
-    config: SimpleMavenResolutionConfig,
-    provider: ArtifactGraphProvider<SimpleMavenResolutionConfig, *>
+public open class SimpleMavenArtifactGraph(
+    config: SimpleMavenArtifactGraphConfig,
+    provider: ArtifactGraphProvider<SimpleMavenArtifactGraphConfig, *>
 ) : ArtifactGraph<
-        SimpleMavenResolutionConfig,
+        SimpleMavenArtifactGraphConfig,
         SimpleMavenRepositorySettings,
         SimpleMavenArtifactGraph.SimpleMavenArtifactResolver>(
     config, provider
@@ -24,7 +24,7 @@ public class SimpleMavenArtifactGraph(
         graphController: GraphController
     ) : ArtifactResolver<
             SimpleMavenDescriptor,
-            SimpleMavenArtifactMeta,
+            SimpleMavenArtifactMetadata,
             SimpleMavenRepositorySettings,
             SimpleMavenArtifactResolutionOptions>(
         SimpleMavenRepositoryHandler(layout, settings), graphController
@@ -33,10 +33,10 @@ public class SimpleMavenArtifactGraph(
 
         // Waiting for kotlinx coroutines to reach version 1.7 for support of the JPMS
         override fun resolve(
-            meta: SimpleMavenArtifactMeta,
+            metadata: SimpleMavenArtifactMetadata,
             options: SimpleMavenArtifactResolutionOptions,
             trace: ArtifactRepository.ArtifactTrace?
-        ): Artifact? =artifactOfSync(meta, options.also(Lockable::lock), trace)
+        ): Artifact? = artifactOfSync(metadata, options.also(Lockable::lock), trace)
 //            if (options.processAsync)
 //            runBlocking { artifactOfAsync(meta, options, trace) }
 //        else artifactOfSync(meta, options, trace)
@@ -62,19 +62,19 @@ public class SimpleMavenArtifactGraph(
 //        }
 
         private fun artifactOfSync(
-            meta: SimpleMavenArtifactMeta,
+            metadata: SimpleMavenArtifactMetadata,
             options: SimpleMavenArtifactResolutionOptions,
             _trace: ArtifactRepository.ArtifactTrace?
         ): Artifact? {
-            val trace = ArtifactRepository.ArtifactTrace(_trace, meta.desc)
-            val transitives: List<SimpleMavenTransitiveInfo> = getTransitives(trace, meta, options)
+            val trace = ArtifactRepository.ArtifactTrace(_trace, metadata.desc)
+            val transitives: List<SimpleMavenTransitiveInfo> = getTransitives(trace, metadata, options)
 
             val artifacts = transitives.map { t ->
                 artifactFromTransitive(t, trace, options)
             }
 
             return if (artifacts.any { it == null }) null
-            else Artifact(meta, artifacts as List<Artifact>)
+            else Artifact(metadata, artifacts as List<Artifact>)
         }
 
         private fun artifactFromTransitive(
@@ -93,14 +93,14 @@ public class SimpleMavenArtifactGraph(
 
         private fun getTransitives(
             trace: ArtifactRepository.ArtifactTrace,
-            meta: SimpleMavenArtifactMeta,
+            metadata: SimpleMavenArtifactMetadata,
             options: SimpleMavenArtifactResolutionOptions
         ): List<SimpleMavenTransitiveInfo> {
-            if (trace.isCyclic(meta.desc)) throw IllegalStateException("Cyclic artifacts found in trace: $trace")
+            if (trace.isCyclic(metadata.desc)) throw IllegalStateException("Cyclic artifacts found in trace: $trace")
 
             val transitives: List<SimpleMavenTransitiveInfo> =
                 if (!options.isTransitive) listOf()
-                else meta.transitives.filterNot {
+                else metadata.transitives.filterNot {
                     options.excludes.contains(it.desc.artifact)
                 }.filter {
                     options.includeScopes.contains(it.scope) || options.includeScopes.isEmpty()

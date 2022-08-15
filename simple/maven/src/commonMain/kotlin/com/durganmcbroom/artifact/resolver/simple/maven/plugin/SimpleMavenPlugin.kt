@@ -1,7 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.plugin
 
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomPropertySource
-import kotlin.jvm.JvmStatic
 
 public abstract class SimpleMavenPlugin(
     protected val configuration: SimplePluginConfiguration
@@ -16,12 +15,11 @@ public abstract class SimpleMavenPlugin(
         public val ALL_VERSION: String = "<*>"
     }
 
-    public data class VersionDescriptor(
-        private val _version: String?
+    public class VersionDescriptor(
+        _version: String?
      ) {
         public val version: String = _version ?: ALL_VERSION
-
-        public val isAll: Boolean = version == ALL_VERSION
+        private val isAll: Boolean = version == ALL_VERSION
 
         public fun matches(other: VersionDescriptor) : Boolean = other.isAll || isAll || other.version == version
 

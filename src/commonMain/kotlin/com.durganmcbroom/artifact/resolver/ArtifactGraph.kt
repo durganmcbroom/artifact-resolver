@@ -32,22 +32,22 @@ public abstract class ArtifactGraph<
 
         public open fun descriptorOf(name: String): D? = repository.descriptorOf(name)
 
-        public open fun metaOf(descriptor: D): M? = repository.metaOf(descriptor)
+        public open fun metadataOf(descriptor: D): M? = repository.metadataOf(descriptor)
 
-        protected abstract fun resolve(meta: M, options: O, trace: ArtifactRepository.ArtifactTrace?): Artifact?
+        protected abstract fun resolve(metadata: M, options: O, trace: ArtifactRepository.ArtifactTrace?): Artifact?
 
         final override fun artifactOf(desc: D, options: O, trace: ArtifactRepository.ArtifactTrace?): Artifact? =
-            graph[desc] ?: metaOf(desc)?.let { resolve(it, options, trace) }?.also(graphController::put)
+            graph[desc] ?: metadataOf(desc)?.let { resolve(it, options, trace) }?.also(graphController::put)
 
         public fun artifactOf(name: String, options: O): Artifact? = descriptorOf(name)?.let { desc ->
-            graph[desc] ?: metaOf(desc)?.let { artifactOf(it, options) }?.also(graphController::put)
+            graph[desc] ?: metadataOf(desc)?.let { artifactOf(it, options) }?.also(graphController::put)
         }
 
         public fun artifactOf(desc: D, options: O): Artifact? =
-            graph[desc] ?: metaOf(desc)?.let { artifactOf(it, options) }?.also(graphController::put)
+            graph[desc] ?: metadataOf(desc)?.let { artifactOf(it, options) }?.also(graphController::put)
 
-        public fun artifactOf(meta: M, options: O): Artifact? =
-            graph[meta.desc] ?: resolve(meta, options, null)?.also(graphController::put)
+        public fun artifactOf(metadata: M, options: O): Artifact? =
+            graph[metadata.desc] ?: resolve(metadata, options, null)?.also(graphController::put)
     }
 }
 

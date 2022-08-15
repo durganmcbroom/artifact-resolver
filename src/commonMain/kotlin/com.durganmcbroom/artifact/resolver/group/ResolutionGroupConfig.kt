@@ -3,9 +3,9 @@ package com.durganmcbroom.artifact.resolver.group
 import com.durganmcbroom.artifact.resolver.*
 
 public class ResolutionGroupConfig : ArtifactGraphConfig<Nothing, Nothing>() {
-    // References from resolution providers to meta for those resolvers
-    private val _refs: MutableMap<ArtifactGraphProvider.Key, ResolverMeta<*, *>> = HashMap()
-    internal val refs: Map<ArtifactGraphProvider.Key, ResolverMeta<*, *>>
+    // References from resolution providers to metadata for those resolvers
+    private val _refs: MutableMap<ArtifactGraphProvider.Key, ResolverMetadata<*, *>> = HashMap()
+    internal val refs: Map<ArtifactGraphProvider.Key, ResolverMetadata<*, *>>
         get() = _refs.toMap()
 
     // Starts the Resolution Builder
@@ -44,7 +44,7 @@ public class ResolutionGroupConfig : ArtifactGraphConfig<Nothing, Nothing>() {
                 resolutionOptionsTransformers.add(dt)
             }
 
-        // Registers this as meta
+        // Registers this as metadata
         public fun register() {
             // Overrides the deReferencer from the configuration
             val deRefSet = runCatching { configuration.deReferencer = GroupedDeReferencer() }
@@ -56,8 +56,8 @@ public class ResolutionGroupConfig : ArtifactGraphConfig<Nothing, Nothing>() {
             // Locks the configuration
             configuration.lock()
 
-            // Creates and set the resolver meta.
-            _refs[provider.key] = ResolverMeta(
+            // Creates and set the resolver metadata.
+            _refs[provider.key] = ResolverMetadata(
                 configuration,
                 descriptionTransformers.toList(),
                 resolutionOptionsTransformers.toList()
@@ -65,26 +65,25 @@ public class ResolutionGroupConfig : ArtifactGraphConfig<Nothing, Nothing>() {
         }
     }
 
-    // Meta
-    public data class ResolverMeta<D : ArtifactMetadata.Descriptor, O : ArtifactResolutionOptions> internal constructor(
+    // Metadata
+    public data class ResolverMetadata<D : ArtifactMetadata.Descriptor, O : ArtifactResolutionOptions> internal constructor(
         val config: ArtifactGraphConfig<D, O>,
         val descTransformers: List<DescriptionTransformer<*, D>>,
         val optionTransformers: List<ResolutionOptionsTransformer<*, O>>
     )
 
     // The DeReferencer to use for all resolvers
-    private inner class GroupedDeReferencer<D : ArtifactMetadata.Descriptor, O : ArtifactResolutionOptions>(
-//        private val metaFrom: ResolverMeta<D, O>
-    ) : RepositoryDeReferencer<D, O> {
+    private inner class GroupedDeReferencer<D : ArtifactMetadata.Descriptor, O : ArtifactResolutionOptions> :
+        RepositoryDeReferencer<D, O> {
         @Suppress("UNCHECKED_CAST")
         override fun deReference(ref: RepositoryReference<*>): RepositoryProxy<D, O, *, *>? {
-            // Gets the meta from the map or returns null if it cannot be found
-            val meta: ResolverMeta<*, *> = refs[ref.provider.key] ?: return null
+            // Gets the metadata from the map or returns null if it cannot be found
+            val metadata: ResolverMetadata<*, *> = refs[ref.provider.key] ?: return null
 
             // Gets a new resolver
             val resolver =
                 (ref.provider as ArtifactGraphProvider<ArtifactGraphConfig<*, *>, ArtifactGraph<*, RepositorySettings, *>>).provide(
-                    meta.config
+                    metadata.config
                 )
             // Gets a new processor
             val processor: ArtifactGraph.ArtifactResolver<*, *, *, *> = resolver.resolverFor(ref.settings)
@@ -92,7 +91,7 @@ public class ResolutionGroupConfig : ArtifactGraphConfig<Nothing, Nothing>() {
             // Returns a new repository proxy. This proxy wraps all requests repositories and transforms requests to them (outgoing from the de-references point of view).
             return RepositoryProxy(
                 processor as ArtifactGraph.ArtifactResolver<ArtifactMetadata.Descriptor, *, *, ArtifactResolutionOptions>,
-                meta as ResolverMeta<ArtifactMetadata.Descriptor, ArtifactResolutionOptions>
+                metadata as ResolverMetadata<ArtifactMetadata.Descriptor, ArtifactResolutionOptions>
             )
         }
     }
@@ -101,7 +100,7 @@ public class ResolutionGroupConfig : ArtifactGraphConfig<Nothing, Nothing>() {
     // are transformed) while types DT and OT represent incoming requests to teh parent from types D and O.
     private inner class RepositoryProxy<D : ArtifactMetadata.Descriptor, O : ArtifactResolutionOptions, DT : ArtifactMetadata.Descriptor, OT : ArtifactResolutionOptions>(
         private val parent: ArtifactRepository<DT, OT>,
-        private val metaTo: ResolverMeta<DT, OT>
+        private val metadataTo: ResolverMetadata<DT, OT>
     ) : ArtifactRepository<D, O> {
         private fun <T : Any> List<Transformer<*, T>>.transform(toTransform: Any): T? = firstNotNullOfOrNull {
             if (it.typeIn.isInstance(toTransform)) (it as Transformer<Any, T>).transform(toTransform)
@@ -109,8 +108,8 @@ public class ResolutionGroupConfig : ArtifactGraphConfig<Nothing, Nothing>() {
         }
 
         override fun artifactOf(desc: D, options: O, trace: ArtifactRepository.ArtifactTrace?): Artifact? {
-            val newDesc = metaTo.descTransformers.transform(desc) ?: return null
-            val newOptions = metaTo.optionTransformers.transform(options) ?: return null
+            val newDesc = metadataTo.descTransformers.transform(desc) ?: return null
+            val newOptions = metadataTo.optionTransformers.transform(options) ?: return null
 
             return parent.artifactOf(newDesc, newOptions, trace)
         }
