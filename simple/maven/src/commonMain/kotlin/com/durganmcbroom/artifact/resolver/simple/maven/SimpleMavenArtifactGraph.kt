@@ -15,11 +15,14 @@ public open class SimpleMavenArtifactGraph(
     override fun newRepoSettings(): SimpleMavenRepositorySettings = SimpleMavenRepositorySettings()
 
     override fun resolverFor(settings: SimpleMavenRepositorySettings): SimpleMavenArtifactResolver =
-        SimpleMavenArtifactResolver(settings.layout, settings.also(Lockable::lock), config.deReferencer, config.graph)
+        SimpleMavenArtifactResolver(
+            SimpleMavenRepositoryHandler(settings.layout, settings.also(Lockable::lock)),
+            config.deReferencer,
+            config.graph
+        )
 
-    public class SimpleMavenArtifactResolver internal constructor(
-        layout: SimpleMavenRepositoryLayout,
-        settings: SimpleMavenRepositorySettings,
+    public open class SimpleMavenArtifactResolver(
+        handler: SimpleMavenRepositoryHandler,
         private val deReferencer: RepositoryDeReferencer<SimpleMavenDescriptor, SimpleMavenArtifactResolutionOptions>,
         graphController: GraphController
     ) : ArtifactResolver<
@@ -27,7 +30,7 @@ public open class SimpleMavenArtifactGraph(
             SimpleMavenArtifactMetadata,
             SimpleMavenRepositorySettings,
             SimpleMavenArtifactResolutionOptions>(
-        SimpleMavenRepositoryHandler(layout, settings), graphController
+        handler, graphController
     ) {
         override fun emptyOptions(): SimpleMavenArtifactResolutionOptions = SimpleMavenArtifactResolutionOptions()
 
@@ -69,7 +72,7 @@ public open class SimpleMavenArtifactGraph(
             val trace = ArtifactRepository.ArtifactTrace(_trace, metadata.desc)
             val transitives: List<SimpleMavenTransitiveInfo> = getTransitives(trace, metadata, options)
 
-            val artifacts = transitives.map { t ->
+            val artifacts: List<Artifact?> = transitives.map { t ->
                 artifactFromTransitive(t, trace, options)
             }
 
