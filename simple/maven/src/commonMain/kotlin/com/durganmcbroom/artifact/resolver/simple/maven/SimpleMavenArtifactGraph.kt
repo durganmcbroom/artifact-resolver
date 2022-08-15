@@ -1,7 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven
 
 import com.durganmcbroom.artifact.resolver.*
-import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
 
 public open class SimpleMavenArtifactGraph(
     config: SimpleMavenArtifactGraphConfig,
@@ -70,18 +69,18 @@ public open class SimpleMavenArtifactGraph(
             _trace: ArtifactRepository.ArtifactTrace?
         ): Artifact? {
             val trace = ArtifactRepository.ArtifactTrace(_trace, metadata.desc)
-            val transitives: List<SimpleMavenTransitiveInfo> = getTransitives(trace, metadata, options)
+            val childrenInfo: List<SimpleMavenChildInfo> = getChildrenInfo(trace, metadata, options)
 
-            val artifacts: List<Artifact?> = transitives.map { t ->
-                artifactFromTransitive(t, trace, options)
+            val artifacts: List<Artifact?> = childrenInfo.map { t ->
+                artifactFromChildInfo(t, trace, options)
             }
 
             return if (artifacts.any { it == null }) null
             else Artifact(metadata, artifacts as List<Artifact>)
         }
 
-        private fun artifactFromTransitive(
-            t: SimpleMavenTransitiveInfo,
+        private fun artifactFromChildInfo(
+            t: SimpleMavenChildInfo,
             trace: ArtifactRepository.ArtifactTrace,
             options: SimpleMavenArtifactResolutionOptions
         ): Artifact? {
@@ -94,21 +93,21 @@ public open class SimpleMavenArtifactGraph(
                 }
         }
 
-        private fun getTransitives(
+        private fun getChildrenInfo(
             trace: ArtifactRepository.ArtifactTrace,
             metadata: SimpleMavenArtifactMetadata,
             options: SimpleMavenArtifactResolutionOptions
-        ): List<SimpleMavenTransitiveInfo> {
+        ): List<SimpleMavenChildInfo> {
             if (trace.isCyclic(metadata.desc)) throw IllegalStateException("Cyclic artifacts found in trace: $trace")
 
-            val transitives: List<SimpleMavenTransitiveInfo> =
+            val children: List<SimpleMavenChildInfo> =
                 if (!options.isTransitive) listOf()
-                else metadata.transitives.filterNot {
+                else metadata.children.filterNot {
                     options.excludes.contains(it.desc.artifact)
                 }.filter {
                     options.includeScopes.contains(it.scope) || options.includeScopes.isEmpty()
                 }
-            return transitives
+            return children
         }
     }
 }

@@ -1,15 +1,15 @@
 package com.durganmcbroom.artifact.resolver
 
-public open class ArtifactMetadata<D: ArtifactMetadata.Descriptor, T: ArtifactMetadata.TransitiveInfo>(
+public open class ArtifactMetadata<D: ArtifactMetadata.Descriptor, C: ArtifactMetadata.ChildInfo>(
     public val desc: D,
     public val resource: CheckedResource?,
-    public val transitives: List<T>
+    public val children: List<C>
 ) {
     public interface Descriptor {
         public val name: String
     }
 
-    public interface TransitiveInfo {
+    public interface ChildInfo {
         public val desc: Descriptor
         public val resolutionCandidates: List<RepositoryReference<*>>
     }

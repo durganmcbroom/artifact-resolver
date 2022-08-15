@@ -13,9 +13,9 @@ The Artifact Resolution API contains these main components:
 - **ArtifactResolver** : As the name suggests, this resolves artifacts. More specifically it creates metadata about
   artifacts and then is able to return a tree of artifacts and their transitive dependencies.
 - **ArtifactMeta** : Metadata about an artifact including: links to resources(jar etc.), information about transitive
-  dependencies and other repository specific data.
+  dependencies (internally called children) and other repository specific data.
     - **Descriptor** : Information about where to find an artifact.
-    - **TransitiveInfo** : Information about where to find transitive artifacts.
+    - **ChildInfo** : Information about where to find child (transitive) artifact.
 - **Artifact** : A resolved artifact containing metadata and children.
 
 ### Examples

@@ -2,8 +2,6 @@ package com.durganmcbroom.artifact.resolver.test
 
 import com.durganmcbroom.artifact.resolver.*
 import com.durganmcbroom.artifact.resolver.group.ResolutionGroup
-import com.durganmcbroom.artifact.resolver.group.addResolutionOptionsTransformer
-import com.durganmcbroom.artifact.resolver.group.addDescriptionTransformer
 import com.durganmcbroom.artifact.resolver.group.graphOf
 import org.junit.jupiter.api.Assertions
 import kotlin.test.Test
@@ -41,13 +39,13 @@ class MockTest {
 
     data class MockDescriptor(override val name: String) : ArtifactMetadata.Descriptor
 
-    data class MockTransitive(
+    data class MockChildInfo(
         override val desc: MockDescriptor, override val resolutionCandidates: List<RepositoryReference<*>>
-    ) : ArtifactMetadata.TransitiveInfo
+    ) : ArtifactMetadata.ChildInfo
 
     class MockArtifactMeta(
-        desc: MockDescriptor, resource: CheckedResource, transitives: List<MockTransitive>
-    ) : ArtifactMetadata<MockDescriptor, MockTransitive>(desc, resource, transitives)
+        desc: MockDescriptor, resource: CheckedResource, childrenInfo: List<MockChildInfo>
+    ) : ArtifactMetadata<MockDescriptor, MockChildInfo>(desc, resource, childrenInfo)
 
     class MockRepositoryHandler(override val settings: MockRepositorySettings) :
         RepositoryHandler<MockDescriptor, MockArtifactMeta, MockRepositorySettings> {
@@ -60,7 +58,7 @@ class MockTest {
                         TODO("Not yet implemented")
                     }
                 }, listOf(
-                    MockTransitive(
+                    MockChildInfo(
                         MockDescriptor(""), listOf(RepositoryReference(SecondMock, MockRepositorySettings()))
                     )
                 )
@@ -102,7 +100,7 @@ class MockTest {
         override fun resolve(
             metadata: MockArtifactMeta, options: MockArtifactResolutionOptions, trace: ArtifactRepository.ArtifactTrace?
         ): Artifact {
-            return Artifact(metadata, metadata.transitives.mapNotNull { t ->
+            return Artifact(metadata, metadata.children.mapNotNull { t ->
                 t.resolutionCandidates.firstNotNullOfOrNull {
                     deReferencer.deReference(it)?.artifactOf(t.desc, options, trace)
                 }
