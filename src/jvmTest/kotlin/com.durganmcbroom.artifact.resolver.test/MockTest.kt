@@ -5,6 +5,7 @@ import com.durganmcbroom.artifact.resolver.group.ResolutionGroup
 import com.durganmcbroom.artifact.resolver.group.addResolutionOptionsTransformer
 import com.durganmcbroom.artifact.resolver.group.addDescriptionTransformer
 import com.durganmcbroom.artifact.resolver.group.graphOf
+import org.junit.jupiter.api.Assertions
 import kotlin.test.Test
 
 class MockTest {
@@ -19,7 +20,7 @@ class MockTest {
         }
     }
 
-    @Test
+    @Test()
     fun `Test grouping system`() {
         val resolver = ArtifactGraph(ResolutionGroup) {
             graphOf(Mock).register()
@@ -30,7 +31,10 @@ class MockTest {
         val processor = resolver[Mock]!!.resolverFor(MockRepositorySettings())
 
         // Will throw a stack overflow, to properly test we need to create a whole new Mock
-        println(processor.artifactOf(""))
+
+        Assertions.assertThrows(StackOverflowError::class.java) {
+            processor.artifactOf("")
+        }
     }
 
     class MockRepositorySettings : RepositorySettings()
