@@ -18,22 +18,22 @@ private val secondaryInterpolationStage = SecondaryInterpolationStage()
 private val dependencyManagementInjector = DependencyManagementInjectionStage()
 private val pomFinalizingStage = PomFinalizingStage()
 
-public fun SimpleMavenRepositoryHandler.parsePom(resource: CheckedResource): FinalizedPom = parsePom(parseData(resource))
+public fun SimpleMavenRepositoryHandler.parsePom(resource: CheckedResource): PomData = parsePom(parseData(resource))
 
-public fun SimpleMavenRepositoryHandler.parsePom(data: PomData): FinalizedPom = WrappedPomData(data, this)
+public fun SimpleMavenRepositoryHandler.parsePom(data: PomData): PomData = WrappedPomData(data, this)
     .let(parentResolutionStage::process)
     .let(inheritanceAssemblyStage::process)
     .let(primaryInterpolationStage::process)
     .let(pluginManagementInjectionStage::process)
     .let(pluginLoadingStage::process)
     .let(secondaryInterpolationStage::process)
-    .let(dependencyManagementInjector::process)
-    .let(pomFinalizingStage::process)
+    .let(dependencyManagementInjector::process).data
+//    .let(pomFinalizingStage::process)
 
-internal fun SimpleMavenRepositoryHandler.parsePomExtensions(data: PomData): List<PomExtension> = WrappedPomData(data, this)
-    .let(parentResolutionStage::process)
-    .let(inheritanceAssemblyStage::process)
-    .let(primaryInterpolationStage::process).pomData.build.extensions
+//internal fun SimpleMavenRepositoryHandler.parsePomExtensions(data: PomData): List<PomExtension> = WrappedPomData(data, this)
+//    .let(parentResolutionStage::process)
+//    .let(inheritanceAssemblyStage::process)
+//    .let(primaryInterpolationStage::process).pomData.build.extensions
 
 public const val SUPER_POM_PATH: String = "/pom-4.0.0.xml"
 

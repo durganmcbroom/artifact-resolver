@@ -38,7 +38,7 @@ public open class SimpleMavenRepositoryHandler(
                     SimpleMavenDescriptor(
                         it.groupId,
                         it.artifactId,
-                        it.version,
+                        it.version!!,
                         it.classifier
                     ), repositories, it.scope
                 )

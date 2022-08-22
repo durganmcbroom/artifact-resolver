@@ -1,5 +1,7 @@
 package com.durganmcbroom.artifact.resolver.test
 
+import arrow.core.continuations.Effect
+import arrow.core.continuations.effect
 import com.durganmcbroom.artifact.resolver.*
 import com.durganmcbroom.artifact.resolver.group.ResolutionGroup
 import com.durganmcbroom.artifact.resolver.group.graphOf
@@ -15,6 +17,12 @@ class MockTest {
 
         processor.artifactOf("Hey!") {
             // Set resolution options
+        }
+
+        val e : Effect<String, Unit> = effect {
+            ensure(true) { "" }
+
+
         }
     }
 
@@ -86,7 +94,6 @@ class MockTest {
     }
 
     class MockArtifactResolutionOptions : ArtifactResolutionOptions()
-
     class MockArtifactProcessor(
         repository: RepositoryHandler<MockDescriptor, MockArtifactMeta, MockRepositorySettings>,
         private val deReferencer: RepositoryDeReferencer<MockDescriptor, MockArtifactResolutionOptions>,

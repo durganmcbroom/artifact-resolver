@@ -16,6 +16,8 @@ class ResolutionTest {
         val artifact = processor.artifactOf("org.jetbrains:annotations:23.0.0")
 
         println(artifact)
+
+        org.apache.maven.model.Model
     }
 
     @Test
