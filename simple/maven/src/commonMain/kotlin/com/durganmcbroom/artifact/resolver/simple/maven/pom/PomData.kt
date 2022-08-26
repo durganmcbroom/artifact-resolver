@@ -1,5 +1,12 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom
 
+import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomRepositoryUpdatePolicy.*
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
+
+private const val DEFAULT_SCOPE = "compile"
+
 public data class MavenDependency(
     val groupId: String,
     val artifactId: String,
@@ -40,9 +47,49 @@ public data class DependencyManagement(
 )
 
 public data class PomRepository(
+    val id: String,
+    val name: String,
     val url: String,
-    val layout: String = "default"
+    val layout: String = "default",
+    val releases: PomRepositoryPolicy = PomRepositoryPolicy(),
+    val snapshots: PomRepositoryPolicy = PomRepositoryPolicy()
 )
+
+private const val DEFAULT_UPDATE_POLICY = "daily"
+private const val INTERVAL_MATCH = "interval:"
+
+public data class PomRepositoryPolicy(
+    val enabled: Boolean = true,
+    private val _updatePolicy: String = DEFAULT_UPDATE_POLICY,
+    val checksumPolicy: PomRepositoryChecksumPolicy = PomRepositoryChecksumPolicy.WARN,
+) {
+    val updatePolicy: PomRepositoryUpdatePolicy = when {
+        _updatePolicy == "always" -> Always
+        _updatePolicy == DEFAULT_UPDATE_POLICY -> Daily
+        _updatePolicy.startsWith(INTERVAL_MATCH) -> OnInterval(
+            _updatePolicy.removePrefix(
+                INTERVAL_MATCH
+            ).toInt()
+        )
+        _updatePolicy == "never" -> Never
+        else -> Daily
+    }
+}
+
+public sealed class PomRepositoryUpdatePolicy(
+    public val interval: Duration
+) {
+    public object Always : PomRepositoryUpdatePolicy(Duration.ZERO)
+    public object Daily : PomRepositoryUpdatePolicy(1.0.days)
+    public class OnInterval(minutes: Int) : PomRepositoryUpdatePolicy(minutes.minutes)
+    public object Never : PomRepositoryUpdatePolicy(Duration.INFINITE)
+}
+
+public enum class PomRepositoryChecksumPolicy {
+    IGNORE,
+    FAIL,
+    WARN
+}
 
 public data class PomBuild(
     val extensions: List<PomExtension> = listOf(),

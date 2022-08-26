@@ -1,15 +1,21 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositoryHandler
+import arrow.core.Either
+import arrow.core.right
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
 import com.durganmcbroom.artifact.resolver.simple.maven.plugin.SimpleMavenPlugin
 import com.durganmcbroom.artifact.resolver.simple.maven.plugin.SimplePluginConfiguration
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
+import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomParsingException
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomProcessStage
 
 // Maven extensions are also considered plugins
 internal class PluginLoadingStage :
     PomProcessStage<PluginManagementInjectionStage.PluginManagementInjectionData, PluginLoadingStage.PluginLoadingData> {
-    override fun process(i: PluginManagementInjectionStage.PluginManagementInjectionData): PluginLoadingData {
+
+    override val name = "Plugin loading"
+
+    override fun process(i: PluginManagementInjectionStage.PluginManagementInjectionData): Either<PomParsingException,PluginLoadingData> {
         val (data, parents, repo) = i
 
         val plugins = data.build.plugins
@@ -31,28 +37,12 @@ internal class PluginLoadingStage :
             )
         }
 
-//        + plugins.filter { it.extensions == true }.map { plugin ->
-//            val immediateRepos = listOf(repo.layout, CentralMavenLayout) + data.repositories
-//                .map(PomRepository::toSettings)
-//                .map(MavenLayoutFactory::createLayout)
-//
-//            val artifact = immediateRepos.firstNotNullOfOrNull {
-//                it.artifactOf(
-//                    plugin.groupId,
-//                    plugin.artifactId,
-//                    checkNotNull(plugin.version) { "To load extensions plugin must have an explicit version!" },
-//                    null,
-//                    "pom"
-//                )
-//            }
-//        }
-
-        return PluginLoadingData(data, repo, mockPlugins, parents)
+        return PluginLoadingData(data, repo, mockPlugins, parents).right()
     }
 
     data class PluginLoadingData(
         val data: PomData,
-        val thisRepo: SimpleMavenRepositoryHandler,
+        val thisRepo: SimpleMavenMetadataHandler,
         val plugins: List<SimpleMavenPlugin>,
         val parents: List<PomData>
     ) : PomProcessStage.StageData

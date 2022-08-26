@@ -1,8 +1,10 @@
 package com.durganmcbroom.artifact.resolver.simple.maven
 
 import com.durganmcbroom.artifact.resolver.ArtifactMetadata
+import com.durganmcbroom.artifact.resolver.ArtifactStub
 import com.durganmcbroom.artifact.resolver.CheckedResource
-import com.durganmcbroom.artifact.resolver.RepositoryReference
+
+public typealias SimpleMavenArtifactStub = ArtifactStub<SimpleMavenArtifactRequest, SimpleMavenRepositoryStub>
 
 public open class SimpleMavenArtifactMetadata(
     desc: SimpleMavenDescriptor,
@@ -29,7 +31,7 @@ public data class SimpleMavenDescriptor(
 }
 
 public data class SimpleMavenChildInfo(
-    override val desc: SimpleMavenDescriptor,
-    override val resolutionCandidates: List<RepositoryReference<*>>,
-    val scope: String
-) : ArtifactMetadata.ChildInfo
+    override val descriptor: SimpleMavenDescriptor,
+    override val candidates: List<SimpleMavenRepositoryStub>,
+    val scope: String,
+) : ArtifactMetadata.ChildInfo<SimpleMavenDescriptor, SimpleMavenRepositoryStub>(descriptor, candidates)

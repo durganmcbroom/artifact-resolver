@@ -1,47 +1,66 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositoryHandler
-import com.durganmcbroom.artifact.resolver.simple.maven.layout.DefaultSimpleMavenLayout
+import arrow.core.Either
+import arrow.core.continuations.either
+import arrow.core.continuations.ensureNotNull
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
+import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenDefaultLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenCentral
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
 
 internal class ParentResolutionStage : PomProcessStage<WrappedPomData, ParentResolutionStage.ParentResolutionData> {
-    override fun process(i: WrappedPomData): ParentResolutionData {
-        val (_, repo) = i
+    override val name: String = "Parent Resolution"
 
-        fun recursivelyLoadParents(child: PomData, thisLayout: SimpleMavenRepositoryLayout): List<PomData> {
-            val parent: PomParent = child.parent ?: return listOf(SUPER_POM)
+    override fun process(i: WrappedPomData): Either<PomParsingException, ParentResolutionData> = either.eager {
+        val (data, repo) = i
+
+        fun recursivelyLoadParents(
+            child: PomData,
+            thisLayout: SimpleMavenRepositoryLayout
+        ): Either<PomParsingException, List<PomData>> = either.eager loadParents@ {
+            val parent: PomParent = child.parent ?: return@loadParents listOf(SUPER_POM)
 
             val mavenCentral = SimpleMavenCentral(repo.settings.preferredHash)
-            val immediateRepos = listOf(thisLayout, mavenCentral) + child.repositories
-                .map { repo.settings.repositoryReferencer.referenceLayout(it) ?: throw IllegalStateException("Failed to get repository layout for parent pom. Repository was '$it'") }
+            val immediateRepos = listOf(thisLayout, mavenCentral) + child.repositories.map {
+                SimpleMavenDefaultLayout(
+                    it.url,
+                    repo.settings.preferredHash,
+                    it.releases.enabled,
+                    it.snapshots.enabled
+                )
+            }
 
             val artifact = immediateRepos.firstNotNullOfOrNull {
-                it.artifactOf(
+                it.resourceOf(
                     parent.groupId,
                     parent.artifactId,
                     parent.version,
                     null,
                     "pom"
+                ).orNull()
+            }
+
+            ensureNotNull(artifact) {
+                PomParsingException.PomNotFound(
+                    "${parent.groupId}:${parent.artifactId}:${parent.version}",
+                    immediateRepos.map(SimpleMavenRepositoryLayout::name),
+                    this@ParentResolutionStage
                 )
-            } ?: throw IllegalStateException(
-                "Failed to find parent: '${parent.groupId}:${parent.artifactId}:${parent.version}' in repositories: ${
-                    (immediateRepos + thisLayout + mavenCentral).map { (it as? DefaultSimpleMavenLayout)?.url ?: it.type }
-                }"
-            )
+            }
 
-            val parentData = parseData(artifact)
 
-            return listOf(parentData) + recursivelyLoadParents(parentData, thisLayout)
+            val parentData = parseData(artifact).bind()
+
+            listOf(parentData) + recursivelyLoadParents(parentData, thisLayout).bind()
         }
 
-        return ParentResolutionData(i.pomData, i.thisRepo, recursivelyLoadParents(i.pomData, i.thisRepo.layout))
+        ParentResolutionData(data, i.thisRepo, recursivelyLoadParents(data, i.thisRepo.layout).bind())
     }
 
     data class ParentResolutionData(
         val pomData: PomData,
-        val thisRepo: SimpleMavenRepositoryHandler,
+        val thisRepo: SimpleMavenMetadataHandler,
         val parents: List<PomData>
     ) : PomProcessStage.StageData
 }

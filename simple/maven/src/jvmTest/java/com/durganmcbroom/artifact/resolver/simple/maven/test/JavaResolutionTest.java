@@ -1,23 +1,46 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.test;
 
-import com.durganmcbroom.artifact.resolver.ArtifactGraphs;
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMaven;
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositorySettings;
+import arrow.core.Either;
+import com.durganmcbroom.artifact.resolver.Artifact;
+import com.durganmcbroom.artifact.resolver.ArtifactException;
+import com.durganmcbroom.artifact.resolver.ArtifactResolver;
+import com.durganmcbroom.artifact.resolver.simple.maven.*;
 import org.junit.jupiter.api.Test;
 
 public class JavaResolutionTest {
     @Test
     public void testMavenResolution() {
-        var resolver = ArtifactGraphs.newGraph(SimpleMaven.INSTANCE);
-        final SimpleMavenRepositorySettings settings = resolver.newRepoSettings();
-        settings.useMavenCentral();
-        var processor = resolver.resolverFor(settings);
-        final var options = processor.emptyOptions();
-        options.includeScopes("compile", "runtime", "import");
+        final var repo = SimpleMaven.INSTANCE.createNew(SimpleMavenRepositorySettings.mavenCentral(
+                HashType.SHA1
+        ));
 
-        var artifactOrNull = processor.artifactOf("org.springframework:spring-context:5.3.22", options);
+        final var context = new MavenResolutionContext(
+                repo,
+                repo.getStubResolver(),
+                SimpleMaven.INSTANCE.getArtifactComposer()
+        );
 
-        assert artifactOrNull != null;
-        TestUtilsKt.prettyPrint(artifactOrNull, "   ");
+        final Either<ArtifactException, Artifact> artifact = context.getAndResolve(new SimpleMavenArtifactRequest("org.springframework:spring-context:5.3.22"));
+
+        assert artifact.isRight();
+
+        final var a = ((Either.Right<Artifact>) artifact).getValue();
+
+        TestUtilsKt.prettyPrint(a, "   ");
+    }
+
+    @Test
+    public void testPrettyMavenResolution() {
+        final var context = ArtifactResolver.createResolver(SimpleMaven.INSTANCE, SimpleMavenRepositorySettings.mavenCentral(
+                HashType.SHA1
+        ));
+
+        final var either = context.getAndResolve(new SimpleMavenArtifactRequest("org.springframework:spring-context:5.3.22"))  ;
+
+        assert either.isRight();
+
+        final var artifact = ((Either.Right<Artifact>) either).getValue();
+
+        TestUtilsKt.prettyPrint(artifact, "   ");
     }
 }

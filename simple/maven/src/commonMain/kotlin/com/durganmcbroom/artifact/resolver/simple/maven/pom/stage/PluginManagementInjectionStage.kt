@@ -1,20 +1,19 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositoryHandler
-import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomBuild
-import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
-import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomPlugin
-import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomProcessStage
+import arrow.core.Either
+import arrow.core.right
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
+import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
 
 internal class PluginManagementInjectionStage :
     PomProcessStage<PrimaryInterpolationStage.PrimaryInterpolationData, PluginManagementInjectionStage.PluginManagementInjectionData> {
 
-    override fun process(i: PrimaryInterpolationStage.PrimaryInterpolationData): PluginManagementInjectionData {
+    override val name: String = "Plugin management injection"
+
+    override fun process(i: PrimaryInterpolationStage.PrimaryInterpolationData): Either<PomParsingException, PluginManagementInjectionData> {
         val (data, parents, repo) = i
 
         val build = data.build
-
-//
 
         val injectedPlugins = build.plugins.map { p ->
             val managed by lazy {
@@ -39,12 +38,12 @@ internal class PluginManagementInjectionStage :
             )
         )
 
-        return PluginManagementInjectionData(newData, parents, repo)
+        return PluginManagementInjectionData(newData, parents, repo).right()
     }
 
     data class PluginManagementInjectionData(
         val pomData: PomData,
         val parents: List<PomData>,
-        val thisRepo: SimpleMavenRepositoryHandler
+        val thisRepo: SimpleMavenMetadataHandler
     ) : PomProcessStage.StageData
 }

@@ -35,31 +35,30 @@ kotlin {
             compileJavaTaskProvider!!.get().run {
                 targetCompatibility = "17"
                 sourceCompatibility = "17"
+
+                doFirst {
+                    options.compilerArgs.addAll(
+                        listOf(
+                            "--module-path", classpath.asPath,
+                            "--add-modules", "arrow.core.jvm",
+                            "--patch-module", "arrow.core.jvm=arrow-core-jvm-1.1.2.jar"
+                        )
+                    )
+
+                    classpath = files()
+                }
             }
         }
 
     }
-//    js(BOTH) {
-//        browser {
-//            commonWebpackConfig {
-//                cssSupport.enabled = true
-//            }
-//        }
-//    }
-//    val hostOs = System.getProperty("os.name")
-//    val isMingwX64 = hostOs.startsWith("Windows")
-//    val nativeTarget = when {
-//        hostOs == "Mac OS X" -> macosX64("native")
-//        hostOs == "Linux" -> linuxX64("native")
-//        isMingwX64 -> mingwX64("native")
-//        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-//    }
 
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib"))
+                implementation("io.arrow-kt:arrow-core:1.1.2")
                 implementation(kotlin("reflect"))
+
             }
         }
         val commonTest by getting {
