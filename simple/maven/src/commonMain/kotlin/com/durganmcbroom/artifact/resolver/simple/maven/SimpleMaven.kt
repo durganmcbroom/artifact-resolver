@@ -1,15 +1,11 @@
 package com.durganmcbroom.artifact.resolver.simple.maven
 
-import com.durganmcbroom.artifact.resolver.Lockable
-import com.durganmcbroom.artifact.resolver.ArtifactGraphProvider
+import com.durganmcbroom.artifact.resolver.RepositoryFactory
 
-public object SimpleMaven : ArtifactGraphProvider<SimpleMavenArtifactGraphConfig, SimpleMavenArtifactGraph> {
-    override val key: ArtifactGraphProvider.Key = MockMavenKey
-
-    override fun emptyConfig(): SimpleMavenArtifactGraphConfig = SimpleMavenArtifactGraphConfig()
-
-    override fun provide(config: SimpleMavenArtifactGraphConfig): SimpleMavenArtifactGraph =
-        SimpleMavenArtifactGraph(config.also(Lockable::lock), this)
-
-    private object MockMavenKey : ArtifactGraphProvider.Key()
+public object SimpleMaven :
+    RepositoryFactory<SimpleMavenRepositorySettings, SimpleMavenArtifactReference, SimpleMavenArtifactRepository> {
+    override fun createNew(settings: SimpleMavenRepositorySettings): SimpleMavenArtifactRepository =
+        SimpleMavenArtifactRepository(
+            this, SimpleMavenMetadataHandler(settings), settings
+        )
 }

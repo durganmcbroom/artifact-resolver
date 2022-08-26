@@ -81,8 +81,12 @@ internal fun PropertyReplacer.doInterpolation(
     }
     val repositories = data.repositories.map {
         PomRepository(
+            it.id,
+            it.name,
             it.url.ifAsProperty(),
-            it.layout.ifAsProperty()
+            it.layout.ifAsProperty(),
+            it.releases,
+            it.snapshots
         )
     }
 

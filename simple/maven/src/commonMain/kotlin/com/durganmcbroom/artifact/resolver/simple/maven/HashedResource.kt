@@ -1,18 +1,20 @@
 package com.durganmcbroom.artifact.resolver.simple.maven
 
+import arrow.core.Either
 import com.durganmcbroom.artifact.resolver.CheckedResource
+import com.durganmcbroom.artifact.resolver.simple.maven.layout.ResourceRetrievalException
 
 public expect class HashedResource(
     hashType: HashType,
-    resourceURI: String,
+    resourceUrl: String,
     check: ByteArray
 ) : CheckedResource
 
-public expect fun hashedResourceOrNull(
+public expect fun hashedResourceOf(
     hashType: HashType,
-    resourceURI: String,
-    checkURI: String
-) : HashedResource?
+    resourceUrl: String,
+    checkUrl: String
+) : Either<ResourceRetrievalException, HashedResource>
 
 // All used hash types in maven
 public enum class HashType {

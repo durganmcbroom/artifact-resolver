@@ -1,12 +1,17 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositoryHandler
+import arrow.core.Either
+import arrow.core.right
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
 
 internal class PomInheritanceAssemblyStage :
     PomProcessStage<ParentResolutionStage.ParentResolutionData, PomInheritanceAssemblyStage.AssembledPomData> {
+
+    override val name: String = "Pom inheritance assembly"
+
     // TODO Redo the pom inheritance, its technically not fully correct since list fields dont get added together correctly.
-    override fun process(i: ParentResolutionStage.ParentResolutionData): AssembledPomData {
+    override fun process(i: ParentResolutionStage.ParentResolutionData): Either<Nothing, AssembledPomData> {
         val (data, ref, parents) = i
 
         val all = listOf(data) + parents
@@ -46,12 +51,12 @@ internal class PomInheritanceAssemblyStage :
             packaging
         )
 
-        return AssembledPomData(assembledData, parents, ref)
+        return AssembledPomData(assembledData, parents, ref).right()
     }
 
     data class AssembledPomData(
         val pomData: PomData,
         val parents: List<PomData>,
-        val thisRepo: SimpleMavenRepositoryHandler
+        val thisRepo: SimpleMavenMetadataHandler
     ) : PomProcessStage.StageData
 }

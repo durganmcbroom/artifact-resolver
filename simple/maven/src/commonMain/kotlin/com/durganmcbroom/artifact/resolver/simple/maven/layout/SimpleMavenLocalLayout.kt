@@ -1,26 +1,27 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
+import arrow.core.Either
 import com.durganmcbroom.artifact.resolver.CheckedResource
-import com.durganmcbroom.artifact.resolver.simple.maven.localResourceOrNull
+import com.durganmcbroom.artifact.resolver.simple.maven.localResourceOf
 
 public expect val mavenLocal: String
 
 public expect val pathSeparator: String
 
 internal object SimpleMavenLocalLayout : SimpleMavenRepositoryLayout {
-    override val type: String = "local"
+    override val name: String = "local"
 
-    override fun artifactOf(
+    override fun resourceOf(
         groupId: String,
         artifactId: String,
         version: String,
         classifier: String?,
         type: String
-    ): CheckedResource? = (versionedArtifact(
+    ): Either<ResourceRetrievalException, CheckedResource> = (versionedArtifact(
         groupId,
         artifactId,
         version
-    ) + pathSeparator + ("$artifactId-$version${classifier?.let { "-$it" } ?: ""}.$type")).let(::localResourceOrNull)
+    ) + pathSeparator + ("$artifactId-$version${classifier?.let { "-$it" } ?: ""}.$type")).let(::localResourceOf)
 
     private fun baseArtifact(group: String, artifact: String): String =
         "$mavenLocal$pathSeparator${group.replace('.', '/')}$pathSeparator$artifact"

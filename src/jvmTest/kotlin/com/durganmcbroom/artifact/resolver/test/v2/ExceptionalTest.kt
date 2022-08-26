@@ -1,7 +1,7 @@
 package com.durganmcbroom.artifact.resolver.test.v2
 
-import com.durganmcbroom.artifact.resolver.v2.ArtifactMetadata
-import com.durganmcbroom.artifact.resolver.v2.ArtifactException
+import com.durganmcbroom.artifact.resolver.ArtifactMetadata
+import com.durganmcbroom.artifact.resolver.ArtifactException
 import kotlin.test.Test
 
 class ExceptionalTest {

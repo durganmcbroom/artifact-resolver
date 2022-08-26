@@ -5,6 +5,8 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 
+private const val DEFAULT_SCOPE = "compile"
+
 public data class MavenDependency(
     val groupId: String,
     val artifactId: String,
@@ -49,8 +51,8 @@ public data class PomRepository(
     val name: String,
     val url: String,
     val layout: String = "default",
-    val releases: PomRepositoryPolicy,
-    val snapshots: PomRepositoryPolicy
+    val releases: PomRepositoryPolicy = PomRepositoryPolicy(),
+    val snapshots: PomRepositoryPolicy = PomRepositoryPolicy()
 )
 
 private const val DEFAULT_UPDATE_POLICY = "daily"
@@ -64,9 +66,11 @@ public data class PomRepositoryPolicy(
     val updatePolicy: PomRepositoryUpdatePolicy = when {
         _updatePolicy == "always" -> Always
         _updatePolicy == DEFAULT_UPDATE_POLICY -> Daily
-        _updatePolicy.startsWith(INTERVAL_MATCH) -> OnInterval(_updatePolicy.removePrefix(
-            INTERVAL_MATCH
-        ).toInt())
+        _updatePolicy.startsWith(INTERVAL_MATCH) -> OnInterval(
+            _updatePolicy.removePrefix(
+                INTERVAL_MATCH
+            ).toInt()
+        )
         _updatePolicy == "never" -> Never
         else -> Daily
     }

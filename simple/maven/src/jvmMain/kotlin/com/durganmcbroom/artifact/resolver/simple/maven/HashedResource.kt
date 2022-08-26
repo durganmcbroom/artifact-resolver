@@ -1,7 +1,10 @@
 package com.durganmcbroom.artifact.resolver.simple.maven
 
+import arrow.core.Either
+import arrow.core.continuations.either
 import com.durganmcbroom.artifact.resolver.CheckedResource
 import com.durganmcbroom.artifact.resolver.asSequence
+import com.durganmcbroom.artifact.resolver.simple.maven.layout.ResourceRetrievalException
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -14,9 +17,11 @@ private const val NUM_ATTEMPTS = 3
 
 public actual class HashedResource actual constructor(
     private val hashType: HashType,
-    private val resourceURI: String,
+    private val resourceUrl: String,
     private val check: ByteArray
 ) : CheckedResource {
+    override val location: String by ::resourceUrl
+
     override fun get(): Sequence<Byte> {
         assert(NUM_ATTEMPTS > 0)
 
@@ -36,28 +41,35 @@ public actual class HashedResource actual constructor(
             }
         )
 
-       return (ByteArrayInputStream(doUntil(NUM_ATTEMPTS) { attempt ->
+        return (ByteArrayInputStream(doUntil(NUM_ATTEMPTS) { attempt ->
             digest.reset()
 
-            val b = DigestInputStream(URL(resourceURI).openStream(), digest).use(InputStream::readAllBytes)
+            val b = DigestInputStream(URL(resourceUrl).openStream(), digest).use(InputStream::readAllBytes)
 
             if (digest.digest().contentEquals(check)) b
             else null
 
-        } ?: throw Exception("Failed to load resource: '$resourceURI' because the checksums failed too many times!"))).asSequence()
+        }
+            ?: throw Exception("Failed to load resource: '$resourceUrl' because the checksums failed too many times!"))).asSequence()
     }
 }
 
-public actual fun hashedResourceOrNull(
+public actual fun hashedResourceOf(
     hashType: HashType,
-    resourceURI: String,
-    checkURI: String
-): HashedResource? {
-    val connection = URL(checkURI).openConnection() as HttpURLConnection
-    if (connection.responseCode != 200) return null
+    resourceUrl: String,
+    checkUrl: String
+): Either<ResourceRetrievalException, HashedResource> = either.eager {
+    val connection = URL(checkUrl).openConnection() as HttpURLConnection
+    if (connection.responseCode != 200) shift<ResourceRetrievalException>(
+        ResourceRetrievalException.ChecksumFileNotFound(
+            checkUrl,
+            hashType.name
+        )
+    )
 
     val checkString = String(connection.inputStream.readAllBytes())
     val check = HexFormat.of().parseHex(checkString.trim().subSequence(0, 40))
 
-    return HashedResource(hashType, resourceURI, check)
+    HashedResource(hashType, resourceUrl, check)
 }
+

@@ -1,64 +1,86 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositoryHandler
-import com.durganmcbroom.artifact.resolver.simple.maven.layout.DefaultSimpleMavenLayout
-import com.durganmcbroom.artifact.resolver.simple.maven.pom.MavenDependency
-import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
-import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomProcessStage
-import com.durganmcbroom.artifact.resolver.simple.maven.pom.parseData
+import arrow.core.Either
+import arrow.core.continuations.either
+import arrow.core.continuations.ensureNotNull
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
+import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenDefaultLayout
+import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
+import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
+import com.durganmcbroom.artifact.resolver.simple.maven.pom.stage.DependencyManagementInjectionStage.DependencyManagementInjectionData
+import com.durganmcbroom.artifact.resolver.simple.maven.pom.stage.SecondaryInterpolationStage.SecondaryInterpolationData
 
 internal class DependencyManagementInjectionStage :
-    PomProcessStage<SecondaryInterpolationStage.SecondaryInterpolationData, DependencyManagementInjectionStage.DependencyManagementInjectionData> {
-    override fun process(i: SecondaryInterpolationStage.SecondaryInterpolationData): DependencyManagementInjectionData {
-        val (data, repo) = i
+    PomProcessStage<SecondaryInterpolationData, DependencyManagementInjectionData> {
 
-        val layouts = listOf(repo.layout) + data.repositories
-            .map {
-                repo.settings.repositoryReferencer.referenceLayout(it) ?: throw IllegalStateException("Failed to get repository layout for bom. Repository was: '$it'")
+    override val name: String = "Dependency management injection"
+
+    override fun process(i: SecondaryInterpolationData): Either<PomParsingException, DependencyManagementInjectionData> =
+        either.eager {
+            val (data, repo) = i
+
+            val layouts = listOf(repo.layout) + data.repositories.map {
+                ensure(it.layout == "default") {
+                    PomParsingException.InvalidRepository(
+                        it.layout,
+                        "${data.groupId}:${data.artifactId}:${data.version}",
+                        it.name
+                    )
+                }
+
+                SimpleMavenDefaultLayout(it.url, repo.settings.preferredHash, it.releases.enabled, it.snapshots.enabled)
             }
 
-        val boms = data.dependencyManagement.dependencies.filter { it.scope == "import" }
-            .map { bom ->
-                parseData(
-                    layouts.firstNotNullOfOrNull { l ->
-                        l.artifactOf(
+            val boms = data.dependencyManagement.dependencies
+                .filter { it.scope == "import" }
+                .map { bom ->
+                    val bomResource = layouts.firstNotNullOfOrNull { l ->
+                        l.resourceOf(
                             bom.groupId,
                             bom.artifactId,
                             bom.version,
                             null,
                             "pom"
+                        ).orNull()
+                    }
+
+                    ensureNotNull(bomResource) {
+                        PomParsingException.PomNotFound(
+                            "'${bom.groupId}:${bom.artifactId}:${bom.version}'",
+                            layouts.map(SimpleMavenRepositoryLayout::name),
+                            this@DependencyManagementInjectionStage
                         )
-                    } ?: throw IllegalStateException(
-                        "Failed to find BOM $'${bom.groupId}:${bom.artifactId}:${bom.version}' in repositories: ${layouts.joinToString { (it as? DefaultSimpleMavenLayout)?.url ?: it.type }}"
-                    )
+                    }
+
+                    parseData(bomResource).bind()
+                }
+
+            val managedDependencies =
+                data.dependencyManagement.dependencies.filterNot { it.scope == "import" } + boms.flatMap { it.dependencyManagement.dependencies }
+
+            val dependencies = data.dependencies.mapTo(HashSet()) { dep ->
+                val managed by lazy { managedDependencies.find { dep.groupId == it.groupId && dep.artifactId == it.artifactId } }
+
+                MavenDependency(
+                    dep.groupId,
+                    dep.artifactId,
+                    ensureNotNull(
+                        dep.version ?: managed?.version
+                    ) { PomParsingException.DependencyManagementInjectionFailure },
+                    dep.classifier ?: managed?.classifier,
+                    dep.scope ?: managed?.scope
                 )
             }
 
-        val managedDependencies =
-            data.dependencyManagement.dependencies.filterNot { it.scope == "import" } + boms.flatMap { it.dependencyManagement.dependencies }
-
-        val dependencies = data.dependencies.mapTo(HashSet()) { dep ->
-            val managed by lazy { managedDependencies.find { dep.groupId == it.groupId && dep.artifactId == it.artifactId } }
-
-            MavenDependency(
-                dep.groupId,
-                dep.artifactId,
-                dep.version ?: managed?.version
-                ?: throw IllegalArgumentException("Failed to determine version for dependency: $'${dep.groupId}:${dep.artifactId}'"),
-                dep.classifier ?: managed?.classifier,
-                dep.scope ?: managed?.scope
+            val newData = data.copy(
+                dependencies = dependencies
             )
+
+            DependencyManagementInjectionData(newData, repo)
         }
-
-        val newData = data.copy(
-            dependencies = dependencies
-        )
-
-        return DependencyManagementInjectionData(newData, repo)
-    }
 
     data class DependencyManagementInjectionData(
         val data: PomData,
-        val repo: SimpleMavenRepositoryHandler
+        val repo: SimpleMavenMetadataHandler
     ) : PomProcessStage.StageData
 }

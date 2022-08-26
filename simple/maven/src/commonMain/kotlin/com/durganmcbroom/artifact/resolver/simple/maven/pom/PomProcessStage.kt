@@ -1,5 +1,7 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom
 
+import arrow.core.Either
+
 // Stages :
 // Parent Resolution
 // Inheritance Assembly
@@ -9,8 +11,10 @@ package com.durganmcbroom.artifact.resolver.simple.maven.pom
 // Dependency Management Injection
 // Finalization
 
-public interface PomProcessStage<I: PomProcessStage.StageData, O: PomProcessStage.StageData> {
-    public fun process(i: I) : O
+public interface PomProcessStage<in I: PomProcessStage.StageData, out O: PomProcessStage.StageData> {
+    public val name: String
+
+    public fun process(i: I) : Either<PomParsingException, O>
 
     public interface StageData
 }
