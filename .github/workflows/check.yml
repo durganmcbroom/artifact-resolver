@@ -3,7 +3,7 @@ on:
   push:
     branches: [dev, main]
 jobs:
-  publish:
+  check:
     runs-on: ubuntu-latest
     steps:
       - name: Cloning Repo

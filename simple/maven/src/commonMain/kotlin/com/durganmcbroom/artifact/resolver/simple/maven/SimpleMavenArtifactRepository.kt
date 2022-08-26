@@ -6,10 +6,10 @@ import com.durganmcbroom.artifact.resolver.*
 
 public open class SimpleMavenArtifactRepository(
     final override val factory: RepositoryFactory<SimpleMavenRepositorySettings, SimpleMavenArtifactReference, ArtifactRepository<SimpleMavenArtifactRequest, SimpleMavenArtifactReference>>,
-    override val handler: SimpleMavenMetadataHandler,
+    final override val handler: SimpleMavenMetadataHandler,
     settings: SimpleMavenRepositorySettings,
 ) : ArtifactRepository<SimpleMavenArtifactRequest, SimpleMavenArtifactReference> {
-    override val name: String = "Simple Maven"
+    override val name: String = "simple-maven@${handler.layout.name}"
     override val stubResolver: SimpleMavenArtifactStubResolver =
         SimpleMavenArtifactStubResolver(
             SimpleMavenRepositoryStubResolver(

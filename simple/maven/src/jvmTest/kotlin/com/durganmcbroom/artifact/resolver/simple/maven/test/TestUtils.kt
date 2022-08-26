@@ -11,8 +11,8 @@ private fun Artifact.prettyPrint(depth: Int, indentForDepth: String) {
     println("$indent${metadata.descriptor}")
     children.forEach {
         when (it) {
-            is Either.Right -> it.value.prettyPrint(depth+1, indentForDepth)
-            is Either.Left -> println("$indent${it.value.request.descriptor} - STUB")
+            is Either.Right -> it.value.prettyPrint(depth + 1, indentForDepth)
+            is Either.Left -> println("$indent$indentForDepth${it.value.request.descriptor} - STUB")
             else -> println("Cant happen")
         }
     }

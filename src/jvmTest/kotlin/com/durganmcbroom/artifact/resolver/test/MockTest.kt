@@ -1,4 +1,4 @@
-package com.durganmcbroom.artifact.resolver.test.v2
+package com.durganmcbroom.artifact.resolver.test
 
 import arrow.core.Either
 import arrow.core.continuations.either
@@ -31,7 +31,7 @@ class MockTest {
         val repo = MockRepositoryFactory.createNew(MockRepositorySettings("default", "Even more real"))
         val either = repo.get(
             MockArtifactRequest(
-                MockMetadata.MockDescriptor("#defintely-valid"),
+                MockMetadata.MockDescriptor("definitely-valid"),
                 false,
                 listOf()
             )
@@ -45,7 +45,7 @@ class MockTest {
     fun `Test mock artifact resolution`() {
         val context = MockRepositoryFactory.createResolver(MockRepositorySettings("default", "URL"))
 
-        val either = context.getAndResolve(MockArtifactRequest(MockMetadata.MockDescriptor("#definitely-valid"), true, listOf()))
+        val either = context.getAndResolve(MockArtifactRequest(MockMetadata.MockDescriptor("definitely-valid"), true, listOf()))
 
         check(either.isRight())
 
@@ -83,13 +83,13 @@ class MockTest {
     class MockStubResolver : ArtifactStubResolver<MockRepositoryStub, MockArtifactStub, MockArtifactReference> {
         override val factory = MockRepositoryFactory
         override val repositoryResolver: RepositoryStubResolver<MockRepositoryStub, *>
-            get() = RepositoryStubResolver<MockRepositoryStub, MockRepositorySettings> {
+            get() = RepositoryStubResolver {
                 MockRepositorySettings(it.type, it.url).right()
             }
 
 
         override fun resolve(stub: MockArtifactStub): Either<ArtifactException, MockArtifactReference> =
-            factory.createNew(MockRepositorySettings("default", "Even more real"))
+            MockRepositoryFactory.createNew(MockRepositorySettings("default", "Even more real"))
                 .get(
                     MockArtifactRequest(
                         stub.request.descriptor,
@@ -120,7 +120,6 @@ class MockTest {
         MetadataHandler<MockRepositorySettings, MockMetadata.MockDescriptor, MockMetadata> {
         override fun parseDescriptor(desc: String): Either<MetadataRequestException.DescriptorParseFailed, MockMetadata.MockDescriptor> =
             either.eager {
-                ensure(!desc.contains("definitely-valid")) { MetadataRequestException.DescriptorParseFailed }
 
                 MockMetadata.MockDescriptor(desc)
             }
@@ -128,6 +127,8 @@ class MockTest {
         override fun requestMetadata(
             desc: MockMetadata.MockDescriptor
         ): Either<MetadataRequestException, MockMetadata> = either.eager {
+            ensure(desc.name.contains("definitely-valid")) { MetadataRequestException.DescriptorParseFailed }
+
             MockMetadata(
                 desc,
                 listOf()

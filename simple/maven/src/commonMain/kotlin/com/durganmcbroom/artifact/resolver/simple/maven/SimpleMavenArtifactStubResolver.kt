@@ -17,9 +17,11 @@ public open class SimpleMavenArtifactStubResolver(
 
         val repositories = settings.map(factory::createNew)
 
-        repositories
+        val bind = repositories
             .map { it.get(stub.request) }
             .firstOrNull(Either<*, *>::isRight)?.bind()
+
+        bind
             ?: shift(ArtifactException.ArtifactNotFound(stub.request.descriptor, repositories.map { it.name }))
     }
 }

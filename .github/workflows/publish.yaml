@@ -1,7 +1,11 @@
 name: publish
 on:
-  push:
+  workflow_run:
+    workflows:
+      - "check"
     branches: [dev, main]
+    types:
+      - completed
 jobs:
   publish:
     runs-on: ubuntu-latest

@@ -1,4 +1,4 @@
-package com.durganmcbroom.artifact.resolver.test.v2
+package com.durganmcbroom.artifact.resolver.test
 
 import com.durganmcbroom.artifact.resolver.ArtifactMetadata
 import com.durganmcbroom.artifact.resolver.ArtifactException
