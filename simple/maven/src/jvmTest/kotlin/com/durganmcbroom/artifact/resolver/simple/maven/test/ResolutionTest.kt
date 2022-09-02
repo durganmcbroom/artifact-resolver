@@ -12,10 +12,11 @@ import kotlin.test.Test
 class ResolutionTest {
     @Test
     fun `Test basic artifact resolution`() {
-        val repository = SimpleMaven.createNew(SimpleMavenRepositorySettings.mavenCentral(
-            preferredHash = HashType.SHA1
-        ))
-
+        val repository = SimpleMaven.createNew(
+            SimpleMavenRepositorySettings.mavenCentral(
+                preferredHash = HashType.SHA1
+            )
+        )
         val either = ResolutionContext(
             repository,
             repository.stubResolver,
@@ -29,15 +30,35 @@ class ResolutionTest {
 
     @Test
     fun `Test pretty artifact resolution`() {
-        val context = SimpleMaven.createResolver(SimpleMavenRepositorySettings.mavenCentral(
-            preferredHash = HashType.SHA1
-        ))
+        val context = SimpleMaven.createResolver(
+            SimpleMavenRepositorySettings.mavenCentral(
+                preferredHash = HashType.SHA1
+            )
+        )
 
-        val either = context.getAndResolve(SimpleMavenArtifactRequest("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.6"))
+        val either =
+            context.getAndResolve(SimpleMavenArtifactRequest("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.6"))
 
         check(either is Either.Right)
 
         either.value.prettyPrint()
+    }
+
+    @Test
+    fun `Test snapshot artifact resolution`() {
+        val context = SimpleMaven.createResolver(
+            SimpleMavenRepositorySettings.default(
+                "https://repo.codemc.io/repository/maven-snapshots",
+                preferredHash = HashType.SHA1
+            )
+        )
+        val either = context.getAndResolve(SimpleMavenArtifactRequest("net.minecrell:ServerListPlus:3.5.0-SNAPSHOT"))
+
+        check(either is Either.Right)
+
+        either.value.prettyPrint {
+            it.metadata.descriptor.toString() + " @ " + (it.metadata.resource?.location ?: "POM")
+        }
     }
 
 //    fun `Test basic artifact resolution`() {

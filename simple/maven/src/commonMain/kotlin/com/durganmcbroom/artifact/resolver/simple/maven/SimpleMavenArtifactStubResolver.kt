@@ -6,7 +6,7 @@ import com.durganmcbroom.artifact.resolver.*
 
 public open class SimpleMavenArtifactStubResolver(
     override val repositoryResolver: RepositoryStubResolver<SimpleMavenRepositoryStub, SimpleMavenRepositorySettings>,
-    override val factory: RepositoryFactory<SimpleMavenRepositorySettings, SimpleMavenArtifactReference, ArtifactRepository<SimpleMavenArtifactRequest, SimpleMavenArtifactReference>>
+    override val factory: RepositoryFactory<SimpleMavenRepositorySettings, SimpleMavenArtifactRequest, SimpleMavenArtifactStub, SimpleMavenArtifactReference, SimpleMavenArtifactRepository>
 ) : ArtifactStubResolver<SimpleMavenRepositoryStub, SimpleMavenArtifactStub, SimpleMavenArtifactReference> {
     override fun resolve(
         stub: SimpleMavenArtifactStub

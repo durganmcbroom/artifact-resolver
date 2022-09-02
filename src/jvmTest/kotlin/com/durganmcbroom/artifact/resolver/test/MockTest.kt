@@ -43,7 +43,9 @@ class MockTest {
 
     @Test
     fun `Test mock artifact resolution`() {
-        val context = MockRepositoryFactory.createResolver(MockRepositorySettings("default", "URL"))
+        MockRepositoryFactory.createResolver(MockRepositorySettings("default", "URL"))
+        val factory= MockRepositoryFactory
+        val context = factory.createResolver(MockRepositorySettings("", ""))
 
         val either = context.getAndResolve(MockArtifactRequest(MockMetadata.MockDescriptor("definitely-valid"), true, listOf()))
 
@@ -72,7 +74,7 @@ class MockTest {
     }
 
     object MockRepositoryFactory :
-        RepositoryFactory<MockRepositorySettings, MockArtifactReference, MockArtifactRepository> {
+        RepositoryFactory<MockRepositorySettings, MockArtifactRequest, MockArtifactStub, MockArtifactReference, MockArtifactRepository> {
         override fun createNew(settings: MockRepositorySettings): MockArtifactRepository = MockArtifactRepository(
             MockMetadataHandler(settings)
         )
@@ -101,9 +103,9 @@ class MockTest {
     }
 
     class MockArtifactRepository(override val handler: MockMetadataHandler) :
-        ArtifactRepository<MockArtifactRequest, MockArtifactReference> {
+        ArtifactRepository<MockArtifactRequest, MockArtifactStub, MockArtifactReference> {
         override val name: String = "mock"
-        override val factory: RepositoryFactory<*, *, *> = MockRepositoryFactory
+        override val factory = MockRepositoryFactory
         override val stubResolver: MockStubResolver = MockStubResolver()
 
         override fun get(

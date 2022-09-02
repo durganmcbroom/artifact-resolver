@@ -5,10 +5,10 @@ import arrow.core.continuations.either
 import com.durganmcbroom.artifact.resolver.*
 
 public open class SimpleMavenArtifactRepository(
-    final override val factory: RepositoryFactory<SimpleMavenRepositorySettings, SimpleMavenArtifactReference, ArtifactRepository<SimpleMavenArtifactRequest, SimpleMavenArtifactReference>>,
+    final override val factory: RepositoryFactory<SimpleMavenRepositorySettings, SimpleMavenArtifactRequest, SimpleMavenArtifactStub, SimpleMavenArtifactReference, SimpleMavenArtifactRepository>,
     final override val handler: SimpleMavenMetadataHandler,
     settings: SimpleMavenRepositorySettings,
-) : ArtifactRepository<SimpleMavenArtifactRequest, SimpleMavenArtifactReference> {
+) : ArtifactRepository<SimpleMavenArtifactRequest, SimpleMavenArtifactStub, SimpleMavenArtifactReference> {
     override val name: String = "simple-maven@${handler.layout.name}"
     override val stubResolver: SimpleMavenArtifactStubResolver =
         SimpleMavenArtifactStubResolver(
