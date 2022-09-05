@@ -43,11 +43,10 @@ class MockTest {
 
     @Test
     fun `Test mock artifact resolution`() {
-        MockRepositoryFactory.createResolver(MockRepositorySettings("default", "URL"))
-        val factory= MockRepositoryFactory
-        val context = factory.createResolver(MockRepositorySettings("", ""))
+        val context = MockRepositoryFactory.createResolver(MockRepositorySettings("", ""))
 
-        val either = context.getAndResolve(MockArtifactRequest(MockMetadata.MockDescriptor("definitely-valid"), true, listOf()))
+        val either =
+            context.getAndResolve(MockArtifactRequest(MockMetadata.MockDescriptor("definitely-valid"), true, listOf()))
 
         check(either.isRight())
 
@@ -82,7 +81,7 @@ class MockTest {
 
     }
 
-    class MockStubResolver : ArtifactStubResolver<MockRepositoryStub, MockArtifactStub, MockArtifactReference> {
+    class MockStubResolver : ArtifactStubResolver<MockRepositoryStub, MockArtifactRequest, MockArtifactStub> {
         override val factory = MockRepositoryFactory
         override val repositoryResolver: RepositoryStubResolver<MockRepositoryStub, *>
             get() = RepositoryStubResolver {
@@ -90,15 +89,12 @@ class MockTest {
             }
 
 
-        override fun resolve(stub: MockArtifactStub): Either<ArtifactException, MockArtifactReference> =
-            MockRepositoryFactory.createNew(MockRepositorySettings("default", "Even more real"))
-                .get(
-                    MockArtifactRequest(
-                        stub.request.descriptor,
-                        false,
-                        listOf()
-                    )
-                )
+        override fun resolve(stub: MockArtifactStub): Either<ArtifactException, MockArtifactRequest> =
+            MockArtifactRequest(
+                stub.request.descriptor,
+                false,
+                listOf()
+            ).right()
 
     }
 
@@ -142,5 +138,5 @@ class MockTest {
         override val descriptor: MockMetadata.MockDescriptor,
         val processTransitive: Boolean,
         val takeScopes: List<String>
-    ) : ArtifactRequest
+    ) : ArtifactRequest<MockMetadata.MockDescriptor>
 }

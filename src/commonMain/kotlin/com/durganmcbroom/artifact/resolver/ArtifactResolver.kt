@@ -5,11 +5,11 @@ package com.durganmcbroom.artifact.resolver
 import arrow.core.Either
 import arrow.core.continuations.either
 
-public interface ArtifactRepositoryContext<R : ArtifactRequest, out A : ArtifactReference<*, *>> {
-    public val artifactRepository: ArtifactRepository<R, *, A>
+public interface ArtifactRepositoryContext<R : ArtifactRequest<*>, S: ArtifactStub<R, *>, out A : ArtifactReference<*, S>> {
+    public val artifactRepository: ArtifactRepository<R, S, A>
 }
 
-public interface StubResolverContext<T : ArtifactStub<*, *>, out A : ArtifactReference<*, T>> {
+public interface StubResolverContext<T: ArtifactStub<*, *>, out A: ArtifactReference<*, T>> {
     public val stubResolver: ArtifactStubResolver<*, T, A>
 }
 
@@ -19,7 +19,7 @@ public interface ArtifactComposerContext {
 
 public fun <
         S : RepositorySettings,
-        Req : ArtifactRequest,
+        Req : ArtifactRequest<*>,
         Stub : ArtifactStub<Req, *>,
         Ref : ArtifactReference<*, Stub>,
         R : ArtifactRepository<Req, Stub, Ref>> RepositoryFactory<S, Req, Stub, Ref, R>.createResolver(
@@ -34,19 +34,19 @@ public fun <
     )
 }
 
-public open class ResolutionContext<R : ArtifactRequest, S : ArtifactStub<*, *>, T : ArtifactReference<*, S>>(
-    public val repositoryContext: ArtifactRepositoryContext<R, T>,
-    public val resolverContext: StubResolverContext<S, *>,
+public open class ResolutionContext<R : ArtifactRequest<*>, S : ArtifactStub<R, *>, T : ArtifactReference<*, S>>(
+    public val repositoryContext: ArtifactRepositoryContext<R, S, T>,
+    public val resolverContext: StubResolverContext<S, T>,
     public val composerContext: ArtifactComposerContext,
 ) {
     public constructor(
-        artifactRepository: ArtifactRepository<R, *, T>,
-        stubResolver: ArtifactStubResolver<*, S, *>,
+        artifactRepository: ArtifactRepository<R, S, T>,
+        stubResolver: ArtifactStubResolver<*, S, T>,
         artifactComposer: ArtifactComposer
-    ) : this(object : ArtifactRepositoryContext<R, T> {
-        override val artifactRepository: ArtifactRepository<R, *, T> = artifactRepository
-    }, object : StubResolverContext<S, ArtifactReference<*, S>> {
-        override val stubResolver: ArtifactStubResolver<*, S, ArtifactReference<*, S>> = stubResolver
+    ) : this(object : ArtifactRepositoryContext<R, S, T> {
+        override val artifactRepository: ArtifactRepository<R, S, T> = artifactRepository
+    }, object : StubResolverContext<S, T> {
+        override val stubResolver: ArtifactStubResolver<*, S, T> = stubResolver
     }, object : ArtifactComposerContext {
         override val artifactComposer: ArtifactComposer = artifactComposer
     })
@@ -64,7 +64,7 @@ public open class ResolutionContext<R : ArtifactRequest, S : ArtifactStub<*, *>,
         either.eager {
             val newChildren: List<Either<S, Artifact>> = artifact.children.map { child ->
                 resolverContext.stubResolver.resolve(child).bimap({ child }, { it })
-            }.filterIsInstance<Either<S, T>>().map { c ->
+            }.map { c ->
                 c.map {
                     cache[it.metadata.descriptor] ?: getAndResolve(it, cache).bind()
                         .also { a -> cache[a.metadata.descriptor] = a }

@@ -2,7 +2,7 @@ package com.durganmcbroom.artifact.resolver
 
 import arrow.core.Either
 
-public interface ArtifactRepository<R: ArtifactRequest, S: ArtifactStub<R, *>, out A: ArtifactReference<*, S>> {
+public interface ArtifactRepository<R: ArtifactRequest<*>, S: ArtifactStub<R, *>, out A: ArtifactReference<*, S>> {
     public val name: String
 
     public val handler: MetadataHandler<*, *, *>

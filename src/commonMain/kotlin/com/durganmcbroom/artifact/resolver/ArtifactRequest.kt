@@ -1,5 +1,5 @@
 package com.durganmcbroom.artifact.resolver
 
-public interface ArtifactRequest {
-    public val descriptor: ArtifactMetadata.Descriptor
+public interface ArtifactRequest<T: ArtifactMetadata.Descriptor> {
+    public val descriptor: T
 }

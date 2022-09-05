@@ -3,7 +3,7 @@ package com.durganmcbroom.artifact.resolver
 
 public interface RepositoryFactory<
         in S : RepositorySettings,
-        Req : ArtifactRequest,
+        Req : ArtifactRequest<*>,
         Stub : ArtifactStub<Req, *>,
         out Ref : ArtifactReference<*, Stub>,
         out R : ArtifactRepository<Req, Stub, Ref>> {
