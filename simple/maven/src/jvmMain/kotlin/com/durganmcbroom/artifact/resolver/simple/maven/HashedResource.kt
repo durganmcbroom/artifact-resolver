@@ -16,9 +16,9 @@ import java.util.*
 private const val NUM_ATTEMPTS = 3
 
 public actual class HashedResource actual constructor(
-    private val hashType: HashType,
+    private val hashType: String,
     private val resourceUrl: String,
-    private val check: ByteArray
+    private val check: ByteArray,
 ) : CheckedResource {
     override val location: String by ::resourceUrl
 
@@ -33,12 +33,7 @@ public actual class HashedResource actual constructor(
         }
 
         val digest = MessageDigest.getInstance(
-            when (hashType) {
-                HashType.SHA1 -> "SHA1"
-                HashType.SHA256 -> "SHA256"
-                HashType.SHA512 -> "SHA512"
-                HashType.MD5 -> "MD5"
-            }
+            hashType
         )
 
         return (ByteArrayInputStream(doUntil(NUM_ATTEMPTS) { attempt ->
@@ -57,7 +52,7 @@ public actual class HashedResource actual constructor(
 public actual fun hashedResourceOf(
     hashType: HashType,
     resourceUrl: String,
-    checkUrl: String
+    checkUrl: String,
 ): Either<ResourceRetrievalException, HashedResource> = either.eager {
     val connection = URL(checkUrl).openConnection() as HttpURLConnection
     if (connection.responseCode != 200) shift<ResourceRetrievalException>(
@@ -67,9 +62,19 @@ public actual fun hashedResourceOf(
         )
     )
 
-    val checkString = String(connection.inputStream.readAllBytes())
-    val check = HexFormat.of().parseHex(checkString.trim().subSequence(0, 40))
+    val type = when (hashType) {
+        HashType.SHA1 -> "SHA1"
+        HashType.SHA256 -> "SHA256"
+        HashType.SHA512 -> "SHA512"
+        HashType.MD5 -> "MD5"
+    }
 
-    HashedResource(hashType, resourceUrl, check)
+    val checkString = String(connection.inputStream.readAllBytes())
+        .trim()
+        .let { s -> s.subSequence(0 until s.indexOf(' ').let { (if (it == -1) s.length else it)  }) }
+
+    val check = HexFormat.of().parseHex(checkString)
+
+    HashedResource(type, resourceUrl, check)
 }
 

@@ -4,6 +4,7 @@ module artifact.resolver.simple.maven {
     requires com.fasterxml.jackson.kotlin;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.dataformat.xml;
+    requires arrow.core.jvm;
 
     exports com.durganmcbroom.artifact.resolver.simple.maven;
     exports com.durganmcbroom.artifact.resolver.simple.maven.layout;

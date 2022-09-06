@@ -5,7 +5,7 @@ import com.durganmcbroom.artifact.resolver.CheckedResource
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.ResourceRetrievalException
 
 public expect class HashedResource(
-    hashType: HashType,
+    hashType: String,
     resourceUrl: String,
     check: ByteArray
 ) : CheckedResource
