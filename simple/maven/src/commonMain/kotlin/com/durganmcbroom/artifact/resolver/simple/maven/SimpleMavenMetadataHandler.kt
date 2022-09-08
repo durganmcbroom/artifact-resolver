@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.continuations.either
 import arrow.core.continuations.ensureNotNull
 import arrow.core.rightIfNotNull
+import com.durganmcbroom.artifact.resolver.CheckedResource
 import com.durganmcbroom.artifact.resolver.MetadataHandler
 import com.durganmcbroom.artifact.resolver.MetadataRequestException
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
@@ -30,15 +31,28 @@ public open class SimpleMavenMetadataHandler(
 
         val repositories = pom.repositories.map(::SimpleMavenRepositoryStub)
 
-        SimpleMavenArtifactMetadata(
-            desc,
-            if (pom.packaging != "pom") layout.resourceOf(
+        fun handlePackaging(packaging: String) : CheckedResource? {
+            val ending = when (packaging) {
+                "jar" -> "jar"
+                "war" -> "war"
+                "zip" -> "zip"
+                "rar" -> "jar"
+                "pom" -> null
+                else -> "jar"
+            } ?: return null
+
+            return layout.resourceOf(
                 group,
                 artifact,
                 version,
                 classifier,
-                pom.packaging
-            ).orNull() else null,
+                ending
+            ).orNull()
+        }
+
+        SimpleMavenArtifactMetadata(
+            desc,
+            handlePackaging(pom.packaging),
             dependencies.map {
                 SimpleMavenChildInfo(
                     SimpleMavenDescriptor(

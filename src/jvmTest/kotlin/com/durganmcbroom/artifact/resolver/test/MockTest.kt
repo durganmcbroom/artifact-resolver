@@ -43,7 +43,7 @@ class MockTest {
 
     @Test
     fun `Test mock artifact resolution`() {
-        val context = MockRepositoryFactory.createResolver(MockRepositorySettings("", ""))
+        val context = MockRepositoryFactory.createContext(MockRepositorySettings("", ""))
 
         val either =
             context.getAndResolve(MockArtifactRequest(MockMetadata.MockDescriptor("definitely-valid"), true, listOf()))

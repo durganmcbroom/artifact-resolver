@@ -14,7 +14,7 @@ public class JavaResolutionTest {
                 HashType.SHA1
         ));
 
-        final var context = new MavenResolutionContext(
+        final var context = new SimpleMavenResolutionContext(
                 repo,
                 repo.getStubResolver(),
                 SimpleMaven.INSTANCE.getArtifactComposer()
@@ -31,7 +31,7 @@ public class JavaResolutionTest {
 
     @Test
     public void testPrettyMavenResolution() {
-        final var context = ArtifactResolver.createResolver(SimpleMaven.INSTANCE, SimpleMavenRepositorySettings.mavenCentral(
+        final var context = ArtifactResolver.createContext(SimpleMaven.INSTANCE, SimpleMavenRepositorySettings.mavenCentral(
                 HashType.SHA1
         ));
 

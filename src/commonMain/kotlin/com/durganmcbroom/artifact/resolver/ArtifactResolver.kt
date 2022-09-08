@@ -22,7 +22,7 @@ public fun <
         Req : ArtifactRequest<*>,
         Stub : ArtifactStub<Req, *>,
         Ref : ArtifactReference<*, Stub>,
-        R : ArtifactRepository<Req, Stub, Ref>> RepositoryFactory<S, Req, Stub, Ref, R>.createResolver(
+        R : ArtifactRepository<Req, Stub, Ref>> RepositoryFactory<S, Req, Stub, Ref, R>.createContext(
     settings: S
 ): ResolutionContext<Req, Stub, Ref> {
     val repo: R = createNew(settings)

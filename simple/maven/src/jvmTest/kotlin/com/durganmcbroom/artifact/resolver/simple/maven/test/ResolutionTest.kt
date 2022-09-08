@@ -2,7 +2,7 @@ package com.durganmcbroom.artifact.resolver.simple.maven.test
 
 import arrow.core.Either
 import com.durganmcbroom.artifact.resolver.ResolutionContext
-import com.durganmcbroom.artifact.resolver.createResolver
+import com.durganmcbroom.artifact.resolver.createContext
 import com.durganmcbroom.artifact.resolver.simple.maven.HashType
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMaven
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRequest
@@ -30,7 +30,7 @@ class ResolutionTest {
 
     @Test
     fun `Test pretty artifact resolution`() {
-        val context = SimpleMaven.createResolver(
+        val context = SimpleMaven.createContext(
             SimpleMavenRepositorySettings.mavenCentral(
                 preferredHash = HashType.SHA1
             )
@@ -46,7 +46,7 @@ class ResolutionTest {
 
     @Test
     fun `Test snapshot artifact resolution`() {
-        val context = SimpleMaven.createResolver(
+        val context = SimpleMaven.createContext(
             SimpleMavenRepositorySettings.default(
                 "https://repo.codemc.io/repository/maven-snapshots",
                 preferredHash = HashType.SHA1

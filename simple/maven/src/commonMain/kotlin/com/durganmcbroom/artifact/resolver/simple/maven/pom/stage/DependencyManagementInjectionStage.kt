@@ -24,7 +24,7 @@ internal class DependencyManagementInjectionStage :
                     PomParsingException.InvalidRepository(
                         it.layout,
                         "${data.groupId}:${data.artifactId}:${data.version}",
-                        it.name
+                        it.name ?: it.id ?: "<unknown>"
                     )
                 }
 

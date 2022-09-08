@@ -47,8 +47,8 @@ public data class DependencyManagement(
 )
 
 public data class PomRepository(
-    val id: String,
-    val name: String,
+    val id: String?,
+    val name: String?,
     val url: String,
     val layout: String = "default",
     val releases: PomRepositoryPolicy = PomRepositoryPolicy(),
