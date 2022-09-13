@@ -1,10 +1,9 @@
 package com.durganmcbroom.artifact.resolver.simple.maven
 
 import com.durganmcbroom.artifact.resolver.RepositorySettings
-import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenDefaultLayout
-import com.durganmcbroom.artifact.resolver.simple.maven.layout.SIMPLE_MAVEN_CENTRAL
+import com.durganmcbroom.artifact.resolver.simple.maven.layout.*
+import com.durganmcbroom.artifact.resolver.simple.maven.layout.MAVEN_CENTRAL_REPO
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenLocalLayout
-import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.plugin.SimplePluginProvider
 
 public open class SimpleMavenRepositorySettings @JvmOverloads constructor(
@@ -37,7 +36,7 @@ public open class SimpleMavenRepositorySettings @JvmOverloads constructor(
             preferredHash: HashType = HashType.SHA256,
             pluginProvider: SimplePluginProvider = SimplePluginProvider { _, _, _, _ -> null },
         ): SimpleMavenRepositorySettings = default(
-            SIMPLE_MAVEN_CENTRAL,
+            MAVEN_CENTRAL_REPO,
             releasesEnabled = true,
             snapshotsEnabled = false,
             preferredHash,
@@ -47,8 +46,9 @@ public open class SimpleMavenRepositorySettings @JvmOverloads constructor(
         @JvmStatic
         @JvmOverloads
         public fun local(
+            path: String = mavenLocal,
             preferredHash: HashType = HashType.SHA256,
             pluginProvider: SimplePluginProvider = SimplePluginProvider { _, _, _, _ -> null },
-        ): SimpleMavenRepositorySettings = SimpleMavenRepositorySettings(SimpleMavenLocalLayout, preferredHash, pluginProvider)
+        ): SimpleMavenRepositorySettings = SimpleMavenRepositorySettings(SimpleMavenLocalLayout(path), preferredHash, pluginProvider)
     }
 }

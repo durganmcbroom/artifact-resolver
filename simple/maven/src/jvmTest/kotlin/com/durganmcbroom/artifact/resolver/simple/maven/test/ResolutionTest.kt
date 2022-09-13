@@ -60,6 +60,23 @@ class ResolutionTest {
             it.metadata.descriptor.toString() + " @ " + (it.metadata.resource?.location ?: "POM")
         }
     }
+//
+//    @Test
+//    fun `Test spigot artifact resolution`() {
+//        val context = SimpleMaven.createContext(
+//            SimpleMavenRepositorySettings.default(
+//                "https://hub.spigotmc.org/nexus/content/repositories/snapshots",
+//                preferredHash = HashType.MD5
+//            )
+//        )
+//        val either = context.getAndResolve(SimpleMavenArtifactRequest("org.spigotmc:spigot-api:1.10-R0.1-SNAPSHOT"))
+//
+//        check(either is Either.Right)
+//
+//        either.value.prettyPrint {
+//            it.metadata.descriptor.toString() + " @ " + (it.metadata.resource?.location ?: "POM")
+//        }
+//    }
 
 //    fun `Test basic artifact resolution`() {
 //        val processor = ArtifactGraph(SimpleMaven).resolverFor {

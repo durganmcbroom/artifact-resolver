@@ -20,7 +20,7 @@ public open class SimpleMavenArtifactRepository(
         )
 
     override fun get(
-        request: SimpleMavenArtifactRequest
+        request: SimpleMavenArtifactRequest,
     ): Either<ArtifactException, SimpleMavenArtifactReference> = either.eager {
         val metadata = handler.requestMetadata(request.descriptor).bind()
 
@@ -29,10 +29,10 @@ public open class SimpleMavenArtifactRepository(
 
             val transitiveChildren = if (request.isTransitive) rawChildren else listOf()
 
-            val scopedChildren = transitiveChildren.filter { request.scopes.shouldInclude(it.scope) }
+            val scopedChildren = transitiveChildren.filter { request.includeScopes.contains(it.scope) }
 
             val allowedChildren =
-                scopedChildren.filter { request.artifacts.shouldInclude(it.descriptor.artifact) }
+                scopedChildren.filterNot { request.excludeArtifacts.contains(it.descriptor.artifact) }
 
             allowedChildren.map {
                 SimpleMavenArtifactStub(

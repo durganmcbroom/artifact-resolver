@@ -8,7 +8,9 @@ public expect val mavenLocal: String
 
 public expect val pathSeparator: String
 
-internal object SimpleMavenLocalLayout : SimpleMavenRepositoryLayout {
+internal class SimpleMavenLocalLayout(
+    private val path: String = mavenLocal,
+) : SimpleMavenRepositoryLayout {
     override val name: String = "local"
 
     override fun resourceOf(
@@ -24,7 +26,7 @@ internal object SimpleMavenLocalLayout : SimpleMavenRepositoryLayout {
     ) + pathSeparator + ("$artifactId-$version${classifier?.let { "-$it" } ?: ""}.$type")).let(::localResourceOf)
 
     private fun baseArtifact(group: String, artifact: String): String =
-        "$mavenLocal$pathSeparator${group.replace('.', '/')}$pathSeparator$artifact"
+        "$path$pathSeparator${group.replace('.', '/')}$pathSeparator$artifact"
 
     private fun versionedArtifact(g: String, a: String, v: String): String = "${baseArtifact(g, a)}$pathSeparator$v"
 }

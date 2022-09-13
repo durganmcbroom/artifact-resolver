@@ -22,7 +22,6 @@ public class SimpleMavenRepositoryStubResolver(
                 repo.releases.enabled,
                 repo.snapshots.enabled,
             )
-            "local" -> SimpleMavenLocalLayout
             else -> shift(RepositoryStubResolutionException("Invalid repository layout: '${repo.layout}"))
         }
 
