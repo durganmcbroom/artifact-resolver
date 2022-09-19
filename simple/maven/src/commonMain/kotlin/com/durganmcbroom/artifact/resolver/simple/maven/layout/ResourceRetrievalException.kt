@@ -3,6 +3,8 @@ package com.durganmcbroom.artifact.resolver.simple.maven.layout
 import com.durganmcbroom.artifact.resolver.MetadataRequestException
 
 public sealed class ResourceRetrievalException(message: String) : MetadataRequestException(message) {
+    public class IllegalState(reason: String) : ResourceRetrievalException(reason)
+
     public class ChecksumFileNotFound(file: String, type: String) :
         ResourceRetrievalException("Failed to find the checksum file: '$file'. Make sure the type (was '$type') is correct and the artifact exists!")
 

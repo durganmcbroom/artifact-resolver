@@ -34,6 +34,14 @@ public fun <
     )
 }
 
+public sealed class ArtifactResolutionException(message: String) : ArtifactException(message) {
+    public data class CircularArtifacts(
+        val trace: Set<ArtifactMetadata.Descriptor>,
+    ) : ArtifactResolutionException("Circular artifacts found! Trace was: '${
+        trace.joinToString(separator = " -> ") { it.name }
+    }'")
+}
+
 public open class ResolutionContext<R : ArtifactRequest<*>, S : ArtifactStub<R, *>, T : ArtifactReference<*, S>>(
     public val repositoryContext: ArtifactRepositoryContext<R, S, T>,
     public val resolverContext: StubResolverContext<S, T>,
@@ -54,19 +62,22 @@ public open class ResolutionContext<R : ArtifactRequest<*>, S : ArtifactStub<R, 
     public fun getAndResolve(request: R): Either<ArtifactException, Artifact> = either.eager {
         val artifact = repositoryContext.artifactRepository.get(request).bind()
 
-        getAndResolve(artifact, HashMap()).bind()
+        getAndResolve(artifact, HashMap(), setOf()).bind()
     }
 
     private fun getAndResolve(
         artifact: T,
-        cache: MutableMap<ArtifactMetadata.Descriptor, Artifact>
+        cache: MutableMap<ArtifactMetadata.Descriptor, Artifact>,
+        trace: Set<ArtifactMetadata.Descriptor>
     ): Either<ArtifactException, Artifact> =
         either.eager {
             val newChildren: List<Either<S, Artifact>> = artifact.children.map { child ->
+                if (trace.contains(child.request.descriptor)) shift<ArtifactException>(ArtifactResolutionException.CircularArtifacts(trace + artifact.metadata.descriptor))
+
                 resolverContext.stubResolver.resolve(child).bimap({ child }, { it })
             }.map { c ->
                 c.map {
-                    cache[it.metadata.descriptor] ?: getAndResolve(it, cache).bind()
+                    cache[it.metadata.descriptor] ?: getAndResolve(it, cache, trace + artifact.metadata.descriptor).bind()
                         .also { a -> cache[a.metadata.descriptor] = a }
                 }
             }

@@ -46,6 +46,9 @@ public open class SimpleMavenArtifactRequest @JvmOverloads constructor(
         return result
     }
 
+    override fun toString(): String {
+        return "SimpleMavenArtifactRequest(descriptor=$descriptor, isTransitive=$isTransitive, includeScopes=$includeScopes, excludeArtifacts=$excludeArtifacts)"
+    }
 
 
 //    public companion object {

@@ -54,7 +54,7 @@ public actual fun hashedResourceOf(
     resourceUrl: String,
     checkUrl: String,
 ): Either<ResourceRetrievalException, HashedResource> = either.eager {
-    val connection = URL(checkUrl).openConnection() as HttpURLConnection
+    val connection = URL(checkUrl).openConnection() as? HttpURLConnection ?: shift(ResourceRetrievalException.IllegalState("Upon opening connection expected an HttpURLConnection however found something else. Requested resource was: '$resourceUrl' and the checksum file was '$checkUrl'"))
     if (connection.responseCode != 200) shift<ResourceRetrievalException>(
         ResourceRetrievalException.ChecksumFileNotFound(
             checkUrl,
