@@ -81,7 +81,7 @@ class MockTest {
 
     }
 
-    class MockStubResolver : ArtifactStubResolver<MockRepositoryStub, MockArtifactRequest, MockArtifactStub> {
+    class MockStubResolver : ArtifactStubResolver<MockRepositoryStub, MockArtifactStub, MockArtifactReference> {
         override val factory = MockRepositoryFactory
         override val repositoryResolver: RepositoryStubResolver<MockRepositoryStub, *>
             get() = RepositoryStubResolver {
@@ -89,10 +89,9 @@ class MockTest {
             }
 
 
-        override fun resolve(stub: MockArtifactStub): Either<ArtifactException, MockArtifactRequest> =
-            MockArtifactRequest(
-                stub.request.descriptor,
-                false,
+        override fun resolve(stub: MockArtifactStub): Either<ArtifactException, MockArtifactReference> =
+            MockArtifactReference(
+                MockMetadata(stub.request.descriptor, listOf()),
                 listOf()
             ).right()
 
