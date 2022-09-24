@@ -1,4 +1,4 @@
-module artifact.resolver.simple.maven {
+module durganmcbroom.artifact.resolver.simple.maven {
     requires kotlin.stdlib;
     requires durganmcbroom.artifact.resolver;
     requires com.fasterxml.jackson.kotlin;
