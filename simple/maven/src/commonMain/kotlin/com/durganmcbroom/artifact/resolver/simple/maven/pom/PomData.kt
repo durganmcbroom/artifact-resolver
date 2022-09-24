@@ -1,5 +1,7 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom
 
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositorySettings
+import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenDefaultLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomRepositoryUpdatePolicy.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -53,7 +55,26 @@ public data class PomRepository(
     val layout: String = "default",
     val releases: PomRepositoryPolicy = PomRepositoryPolicy(),
     val snapshots: PomRepositoryPolicy = PomRepositoryPolicy()
-)
+) {
+    public companion object {
+        public fun SimpleMavenRepositorySettings.toPomRepository() : PomRepository? {
+            val layout = layout as? SimpleMavenDefaultLayout ?: return null
+
+            return PomRepository(
+                null,
+                null,
+                layout.url,
+                "default",
+                PomRepositoryPolicy(
+                    layout.releasesEnabled
+                ),
+                PomRepositoryPolicy(
+                    layout.snapshotsEnabled
+                )
+            )
+        }
+    }
+}
 
 private const val DEFAULT_UPDATE_POLICY = "daily"
 private const val INTERVAL_MATCH = "interval:"

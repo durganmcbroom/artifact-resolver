@@ -8,8 +8,8 @@ import com.durganmcbroom.artifact.resolver.simple.maven.HashType
 public open class SimpleMavenDefaultLayout(
     public val url: String,
     preferredHash: HashType,
-    private val releasesEnabled: Boolean,
-    private val snapshotsEnabled: Boolean,
+    public val releasesEnabled: Boolean,
+    public val snapshotsEnabled: Boolean,
 ) : SimpleMavenRepositoryLayout {
     override val name: String = "default@$url"
 
