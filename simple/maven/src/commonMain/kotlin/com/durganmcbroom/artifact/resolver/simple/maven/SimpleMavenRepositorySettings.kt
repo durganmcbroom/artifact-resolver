@@ -11,7 +11,6 @@ public open class SimpleMavenRepositorySettings @JvmOverloads constructor(
     public val preferredHash: HashType,
     public val pluginProvider: SimplePluginProvider = SimplePluginProvider { _, _, _, _ -> null },
 ) : RepositorySettings {
-
     public companion object {
         @JvmStatic
         @JvmOverloads
@@ -50,5 +49,9 @@ public open class SimpleMavenRepositorySettings @JvmOverloads constructor(
             preferredHash: HashType = HashType.SHA256,
             pluginProvider: SimplePluginProvider = SimplePluginProvider { _, _, _, _ -> null },
         ): SimpleMavenRepositorySettings = SimpleMavenRepositorySettings(SimpleMavenLocalLayout(path), preferredHash, pluginProvider)
+    }
+
+    override fun toString(): String {
+        return "SimpleMavenRepositorySettings(layout=${layout.name}, preferredHash=$preferredHash)"
     }
 }
