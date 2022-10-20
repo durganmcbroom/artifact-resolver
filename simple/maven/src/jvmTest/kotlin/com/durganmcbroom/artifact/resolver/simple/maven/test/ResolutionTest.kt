@@ -45,6 +45,27 @@ class ResolutionTest {
     }
 
     @Test
+    fun `Test arrow-core artifact resolution`() {
+        val context = SimpleMaven.createContext(
+            SimpleMavenRepositorySettings.mavenCentral(
+                preferredHash = HashType.SHA1
+            )
+        )
+
+        val either =
+            context.getAndResolve(SimpleMavenArtifactRequest(
+                "io.arrow-kt:arrow-core:1.1.2",
+                includeScopes = setOf("compile", "runtime", "import")
+            ))
+
+        check(either is Either.Right)
+
+        either.value.prettyPrint(
+            acceptStubs = false
+        )
+    }
+
+    @Test
     fun `Test snapshot artifact resolution`() {
         val context = SimpleMaven.createContext(
             SimpleMavenRepositorySettings.default(
