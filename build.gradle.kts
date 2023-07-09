@@ -102,7 +102,8 @@ allprojects {
 //            }
             maven {
                 name = "yakclient-repo"
-                url = uri("https://maven.yakclient.net/snapshots")
+                url = uri("http://maven.yakclient.net/snapshots")
+                isAllowInsecureProtocol = true
 
                 credentials {
                     username = project.findProperty("maven.user") as String?
