@@ -117,7 +117,7 @@ allprojects {
 }
 
 val publishAll by tasks.registering {
-    val taskName = "publishAllPublicationsToGithubRepository"
+    val taskName = "publish"
 
     dependsOn(project(":simple-maven").tasks[taskName])
     dependsOn(tasks[taskName])
