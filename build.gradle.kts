@@ -88,9 +88,21 @@ allprojects {
     }
     publishing {
         repositories {
+//            maven {
+//                name = "github"
+//                url = uri("https://maven.pkg.github.com/durganmcbroom/artifact-resolver")
+//
+//                credentials {
+//                    username = project.findProperty("maven.user") as String?
+//                    password = project.findProperty("maven.key") as String?
+//                }
+//                authentication {
+//                    create<BasicAuthentication>("basic")
+//                }
+//            }
             maven {
-                name = "github"
-                url = uri("https://maven.pkg.github.com/durganmcbroom/artifact-resolver")
+                name = "yakclient-repo"
+                url = uri("https://maven.yakclient.net/snapshots")
 
                 credentials {
                     username = project.findProperty("maven.user") as String?
