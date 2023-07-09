@@ -18,7 +18,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+          cache: 'gradle'
       - name: Grant permissions to Gradle
         run: chmod +x gradlew
       - name: Publish with Gradle
-        run: ./gradlew clean jar publishAll -Pmaven.user=${{ secrets.USER }} -Pmaven.key=${{ secrets.USER_KEY }} --no-daemon
+        run: ./gradlew publishAll -Pmaven.user=${{ secrets.USER }} -Pmaven.key=${{ secrets.USER_KEY }} --no-daemon
