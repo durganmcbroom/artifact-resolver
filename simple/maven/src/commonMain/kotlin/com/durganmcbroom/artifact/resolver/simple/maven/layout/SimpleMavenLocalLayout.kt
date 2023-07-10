@@ -8,7 +8,7 @@ public expect val mavenLocal: String
 
 public expect val pathSeparator: String
 
-internal class SimpleMavenLocalLayout(
+public class SimpleMavenLocalLayout(
     private val path: String = mavenLocal,
 ) : SimpleMavenRepositoryLayout {
     override val name: String = "local"
