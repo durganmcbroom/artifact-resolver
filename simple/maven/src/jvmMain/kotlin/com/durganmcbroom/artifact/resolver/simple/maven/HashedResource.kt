@@ -22,6 +22,21 @@ public actual class HashedResource actual constructor(
 ) : CheckedResource {
     override val location: String by ::resourceUrl
 
+    private fun openResource(location: URL, redirects: Int): InputStream {
+        check(redirects < 10) { "Redirected too many times (< 10)! Base url: '$resourceUrl', current url: '$location'." }
+        val conn = location.openConnection() as HttpURLConnection
+        return when (conn.responseCode) {
+            HttpURLConnection.HTTP_OK -> conn.inputStream
+            HttpURLConnection.HTTP_MOVED_TEMP,
+            HttpURLConnection.HTTP_MOVED_PERM,
+            HttpURLConnection.HTTP_SEE_OTHER -> openResource(
+                URL(conn.getHeaderField("Location")), redirects + 1
+            )
+
+            else -> throw Exception("Error when processing resource: '$location'. Received response code: '${conn.responseCode}'.")
+        }
+    }
+
     override fun get(): Sequence<Byte> {
         assert(NUM_ATTEMPTS > 0)
 
@@ -39,7 +54,7 @@ public actual class HashedResource actual constructor(
         return (ByteArrayInputStream(doUntil(NUM_ATTEMPTS) { attempt ->
             digest.reset()
 
-            val b = DigestInputStream(URL(resourceUrl).openStream(), digest).use(InputStream::readAllBytes)
+            val b = DigestInputStream(openResource(URL(resourceUrl),0), digest).use(InputStream::readAllBytes)
 
             if (digest.digest().contentEquals(check)) b
             else null
@@ -54,7 +69,8 @@ public actual fun hashedResourceOf(
     resourceUrl: String,
     checkUrl: String,
 ): Either<ResourceRetrievalException, HashedResource> = either.eager {
-    val connection = URL(checkUrl).openConnection() as? HttpURLConnection ?: shift(ResourceRetrievalException.IllegalState("Upon opening connection expected an HttpURLConnection however found something else. Requested resource was: '$resourceUrl' and the checksum file was '$checkUrl'"))
+    val connection = URL(checkUrl).openConnection() as? HttpURLConnection
+        ?: shift(ResourceRetrievalException.IllegalState("Upon opening connection expected an HttpURLConnection however found something else. Requested resource was: '$resourceUrl' and the checksum file was '$checkUrl'"))
     if (connection.responseCode != 200) shift<ResourceRetrievalException>(
         ResourceRetrievalException.ChecksumFileNotFound(
             checkUrl,
@@ -71,7 +87,7 @@ public actual fun hashedResourceOf(
 
     val checkString = String(connection.inputStream.readAllBytes())
         .trim()
-        .let { s -> s.subSequence(0 until s.indexOf(' ').let { (if (it == -1) s.length else it)  }) }
+        .let { s -> s.subSequence(0 until s.indexOf(' ').let { (if (it == -1) s.length else it) }) }
 
     val check = HexFormat.of().parseHex(checkString)
 
