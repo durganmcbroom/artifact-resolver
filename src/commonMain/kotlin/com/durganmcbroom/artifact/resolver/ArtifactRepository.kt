@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver
 
-import arrow.core.Either
+import com.durganmcbroom.jobs.JobResult
 
 public interface ArtifactRepository<R: ArtifactRequest<*>, S: ArtifactStub<R, *>, out A: ArtifactReference<*, S>> {
     public val name: String
@@ -9,5 +9,5 @@ public interface ArtifactRepository<R: ArtifactRequest<*>, S: ArtifactStub<R, *>
     public val factory: RepositoryFactory<*, R, S, A, ArtifactRepository<R, S, A>>
     public val stubResolver: ArtifactStubResolver<*, S, A>
 
-    public fun get(request: R) : Either<ArtifactException, A>
+    public suspend fun get(request: R) : JobResult<A, ArtifactException>
 }

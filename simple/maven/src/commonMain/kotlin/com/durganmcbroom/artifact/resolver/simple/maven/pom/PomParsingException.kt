@@ -1,6 +1,7 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom
 
 import com.durganmcbroom.artifact.resolver.MetadataRequestException
+import com.durganmcbroom.resources.Resource
 
 public sealed class PomParsingException(message: String) : MetadataRequestException(message) {
     public class PomNotFound(resource: String, lookedIn: List<String>, stage: PomProcessStage<*, *>) :
@@ -14,7 +15,15 @@ public sealed class PomParsingException(message: String) : MetadataRequestExcept
         "Failed to parse repository: '$name' of layout '$layout'. This can be found in the POM of '$foundIn'"
     )
 
-    public object DependencyManagementInjectionFailure : PomParsingException("Failed to fully resolve dependencies version for dependency in management.")
+    public object DependencyManagementInjectionFailure :
+        PomParsingException("Failed to fully resolve dependencies version for dependency in management.") {
+        private fun readResolve(): Any = DependencyManagementInjectionFailure
+    }
 
-    public class InvalidPom(location: String, public val exception: Throwable) : PomParsingException("The given pom is invalid! It is located at: '$location'. The underlying exception was: '${exception.message}'")
+    public class InvalidPom(location: String, override val cause: Throwable) :
+        PomParsingException("The given pom is invalid! It is located at: '$location'.")
+
+    public class ResourceException(resource: Resource, override val cause: Throwable) : PomParsingException(
+        "Exception occurred while opening resource: '${resource.location}'. Caused by the previous exception(s)."
+    )
 }

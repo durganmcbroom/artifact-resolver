@@ -4,13 +4,16 @@ import arrow.core.Either
 import arrow.core.right
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
+import com.durganmcbroom.jobs.JobResult
 
 internal class PluginManagementInjectionStage :
     PomProcessStage<PrimaryInterpolationStage.PrimaryInterpolationData, PluginManagementInjectionStage.PluginManagementInjectionData> {
 
     override val name: String = "Plugin management injection"
 
-    override fun process(i: PrimaryInterpolationStage.PrimaryInterpolationData): Either<PomParsingException, PluginManagementInjectionData> {
+    override suspend fun process(
+        i: PrimaryInterpolationStage.PrimaryInterpolationData
+    ): JobResult<PluginManagementInjectionData, PomParsingException> {
         val (data, parents, repo) = i
 
         val build = data.build

@@ -1,9 +1,11 @@
 package com.durganmcbroom.artifact.resolver
 
+import com.durganmcbroom.resources.Resource
+
 
 public open class ArtifactMetadata<D: ArtifactMetadata.Descriptor, C: ArtifactMetadata.ChildInfo<D, *>>(
     public open val descriptor: D,
-    public open val resource: CheckedResource?,
+    public open val resource: Resource?,
     public open val children: List<C>
 ) {
     public interface Descriptor {

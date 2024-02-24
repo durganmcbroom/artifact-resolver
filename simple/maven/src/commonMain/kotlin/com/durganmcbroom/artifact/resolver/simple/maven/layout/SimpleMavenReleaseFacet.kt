@@ -1,35 +1,47 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
-import arrow.core.Either
-import com.durganmcbroom.artifact.resolver.CheckedResource
-import com.durganmcbroom.artifact.resolver.simple.maven.HashType
-import com.durganmcbroom.artifact.resolver.simple.maven.hashedResourceOf
-
+import com.durganmcbroom.jobs.JobResult
+import com.durganmcbroom.resources.Resource
+import com.durganmcbroom.resources.ResourceAlgorithm
 
 public open class SimpleMavenReleaseFacet(
     public val url: String,
-    public val preferredHash: HashType
+    public val preferredAlgorithm: ResourceAlgorithm,
+    public val requireResourceVerification: Boolean
 ) : SimpleMavenRepositoryFacet {
     override val type: String = "release"
 
-    override fun resourceOf(groupId: String, artifactId: String, version: String, classifier: String?, type: String) : Either<ResourceRetrievalException, CheckedResource> {
-        return versionedArtifact(groupId, artifactId, version).resourceAt("${artifactId}-${version}${classifier?.let { "-$it" } ?: ""}.$type", preferredHash)
+    override suspend fun resourceOf(
+        groupId: String,
+        artifactId: String,
+        version: String,
+        classifier: String?,
+        type: String
+    ): JobResult<Resource, ResourceRetrievalException> {
+        return versionedArtifact(
+            groupId,
+            artifactId,
+            version
+        ).resourceAt("${artifactId}-${version}${classifier?.let { "-$it" } ?: ""}.$type", preferredAlgorithm, this.requireResourceVerification)
     }
 
-    protected fun String.resourceAt(resource: String, checksumType: HashType): Either<ResourceRetrievalException, CheckedResource> =
-        hashedResourceOf(
-            checksumType,
+    protected suspend fun String.resourceAt(
+        resource: String,
+        algorithm: ResourceAlgorithm,
+        requireResourceVerification: Boolean,
+    ): JobResult<Resource, ResourceRetrievalException> =
+        verifiedResourceOf(
             "$this/$resource",
             run {
-                val ending = when(checksumType) {
-                    HashType.SHA1 -> "sha1"
-                    HashType.SHA256 -> "sha256"
-                    HashType.SHA512 -> "sha512"
-                    HashType.MD5 -> "md5"
+                val ending = when (algorithm) {
+                    ResourceAlgorithm.SHA1 -> "sha1"
+                    ResourceAlgorithm.MD5 -> "md5"
                 }
 
                 "$this/$resource.$ending"
-            }
+            },
+            algorithm,
+            requireResourceVerification
         )
 
     protected fun baseArtifact(g: String, a: String): String =

@@ -1,35 +1,34 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
-import arrow.core.Either
-import arrow.core.left
-import com.durganmcbroom.artifact.resolver.CheckedResource
-import com.durganmcbroom.artifact.resolver.simple.maven.HashType
+import com.durganmcbroom.jobs.JobResult
+import com.durganmcbroom.jobs.failure
+import com.durganmcbroom.resources.Resource
+import com.durganmcbroom.resources.ResourceAlgorithm
 
 public open class SimpleMavenDefaultLayout(
     public val url: String,
-    preferredHash: HashType,
+    preferredAlgorithm: ResourceAlgorithm,
     public val releasesEnabled: Boolean,
     public val snapshotsEnabled: Boolean,
+    requireResourceVerification: Boolean
 ) : SimpleMavenRepositoryLayout {
     override val name: String = "default@$url"
 
-    private val releaseFacet = SimpleMavenReleaseFacet(url, preferredHash)
-    private val snapshotFacet = SimpleMavenSnapshotFacet(url, preferredHash)
+    private val releaseFacet = SimpleMavenReleaseFacet(url, preferredAlgorithm, requireResourceVerification)
+    private val snapshotFacet = SimpleMavenSnapshotFacet(url, preferredAlgorithm, requireResourceVerification)
 
-    override fun resourceOf(
+    override suspend fun resourceOf(
         groupId: String,
         artifactId: String,
         version: String,
         classifier: String?,
         type: String
-    ): Either<ResourceRetrievalException, CheckedResource> =
+    ): JobResult<Resource, ResourceRetrievalException> =
         (if (version.endsWith("-SNAPSHOT") && snapshotsEnabled) snapshotFacet else if (releasesEnabled) releaseFacet else null)?.resourceOf(
             groupId,
             artifactId,
             version,
             classifier,
             type
-        ) ?: ResourceRetrievalException.NoEnabledFacet("$groupId:$artifactId:$version:${classifier?.let { "-$it" } ?: ""}:$type", this).left()
-
-
+        ) ?: ResourceRetrievalException.NoEnabledFacet("$groupId:$artifactId:$version:${classifier?.let { "-$it" } ?: ""}:$type", this).failure()
 }

@@ -1,8 +1,6 @@
 package com.durganmcbroom.artifact.resolver
 
-import arrow.core.Either
-
-public data class Artifact(
-    public val metadata: ArtifactMetadata<*, *>,
-    public val children: List<Either<ArtifactStub<*, *>, Artifact>>
+public data class Artifact<T: ArtifactMetadata<*, *>>(
+    public val metadata: T,
+    public val children: List<Artifact<T>>
 )

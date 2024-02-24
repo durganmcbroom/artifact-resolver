@@ -1,22 +1,24 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import arrow.core.Either
-import arrow.core.continuations.either
-import arrow.core.continuations.ensureNotNull
+import arrow.core.raise.either
+import arrow.core.raise.ensure
+import arrow.core.raise.ensureNotNull
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenDefaultLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.stage.DependencyManagementInjectionStage.DependencyManagementInjectionData
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.stage.SecondaryInterpolationStage.SecondaryInterpolationData
+import com.durganmcbroom.jobs.JobResult
+import com.durganmcbroom.jobs.jobScope
 
 internal class DependencyManagementInjectionStage :
     PomProcessStage<SecondaryInterpolationData, DependencyManagementInjectionData> {
-
     override val name: String = "Dependency management injection"
 
-    override fun process(i: SecondaryInterpolationData): Either<PomParsingException, DependencyManagementInjectionData> =
-        either.eager {
+    override suspend fun process(
+        i: SecondaryInterpolationData
+    ): JobResult<DependencyManagementInjectionData, PomParsingException> = jobScope {
             val (data, repo) = i
 
             val layouts = listOf(repo.layout) + data.repositories.map {
@@ -28,7 +30,7 @@ internal class DependencyManagementInjectionStage :
                     )
                 }
 
-                SimpleMavenDefaultLayout(it.url, repo.settings.preferredHash, it.releases.enabled, it.snapshots.enabled)
+                SimpleMavenDefaultLayout(it.url, repo.settings.preferredHash, it.releases.enabled, it.snapshots.enabled, repo.settings.requireResourceVerification)
             }
 
             val boms = data.dependencyManagement.dependencies

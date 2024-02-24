@@ -1,24 +1,29 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import arrow.core.Either
-import arrow.core.continuations.either
-import arrow.core.continuations.ensureNotNull
+import arrow.core.identity
+import arrow.core.raise.ensureNotNull
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenDefaultLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenCentral
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
+import com.durganmcbroom.jobs.JobResult
+import com.durganmcbroom.jobs.jobScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 
 internal class ParentResolutionStage : PomProcessStage<WrappedPomData, ParentResolutionStage.ParentResolutionData> {
     override val name: String = "Parent Resolution"
 
-    override fun process(i: WrappedPomData): Either<PomParsingException, ParentResolutionData> = either.eager {
+    override suspend fun process(
+        i: WrappedPomData
+    ): JobResult<ParentResolutionData, PomParsingException> = jobScope {
         val (data, repo) = i
 
-        fun recursivelyLoadParents(
+        suspend fun recursivelyLoadParents(
             child: PomData,
             thisLayout: SimpleMavenRepositoryLayout
-        ): Either<PomParsingException, List<PomData>> = either.eager loadParents@ {
+        ): JobResult<List<PomData>, PomParsingException> = jobScope loadParents@{
             val parent: PomParent = child.parent ?: return@loadParents listOf(SUPER_POM)
 
             val mavenCentral = SimpleMavenCentral(repo.settings.preferredHash)
@@ -27,19 +32,22 @@ internal class ParentResolutionStage : PomProcessStage<WrappedPomData, ParentRes
                     it.url,
                     repo.settings.preferredHash,
                     it.releases.enabled,
-                    it.snapshots.enabled
+                    it.snapshots.enabled,
+                    repo.settings.requireResourceVerification
                 )
             }
 
-            val artifact = immediateRepos.firstNotNullOfOrNull {
-                it.resourceOf(
-                    parent.groupId,
-                    parent.artifactId,
-                    parent.version,
-                    null,
-                    "pom"
-                ).orNull()
-            }
+            val artifact = immediateRepos.map {
+                async {
+                    it.resourceOf(
+                        parent.groupId,
+                        parent.artifactId,
+                        parent.version,
+                        null,
+                        "pom"
+                    ).getOrNull()
+                }
+            }.awaitAll().firstNotNullOf(::identity)
 
             ensureNotNull(artifact) {
                 PomParsingException.PomNotFound(
@@ -48,7 +56,6 @@ internal class ParentResolutionStage : PomProcessStage<WrappedPomData, ParentRes
                     this@ParentResolutionStage
                 )
             }
-
 
             val parentData = parseData(artifact).bind()
 

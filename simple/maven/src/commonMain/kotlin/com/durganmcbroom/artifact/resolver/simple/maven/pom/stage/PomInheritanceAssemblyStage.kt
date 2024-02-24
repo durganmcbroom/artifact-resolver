@@ -1,9 +1,9 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import arrow.core.Either
 import arrow.core.right
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
+import com.durganmcbroom.jobs.JobResult
 
 internal class PomInheritanceAssemblyStage :
     PomProcessStage<ParentResolutionStage.ParentResolutionData, PomInheritanceAssemblyStage.AssembledPomData> {
@@ -11,7 +11,7 @@ internal class PomInheritanceAssemblyStage :
     override val name: String = "Pom inheritance assembly"
 
     // TODO Redo the pom inheritance, its technically not fully correct since list fields dont get added together correctly.
-    override fun process(i: ParentResolutionStage.ParentResolutionData): Either<Nothing, AssembledPomData> {
+    override suspend fun process(i: ParentResolutionStage.ParentResolutionData): JobResult<AssembledPomData, Nothing> {
         val (data, ref, parents) = i
 
         val all = listOf(data) + parents

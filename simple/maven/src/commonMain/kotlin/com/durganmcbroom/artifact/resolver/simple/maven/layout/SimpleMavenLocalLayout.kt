@@ -1,8 +1,10 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
-import arrow.core.Either
-import com.durganmcbroom.artifact.resolver.CheckedResource
-import com.durganmcbroom.artifact.resolver.simple.maven.localResourceOf
+import com.durganmcbroom.jobs.JobResult
+import com.durganmcbroom.jobs.success
+import com.durganmcbroom.resources.LocalResource
+import com.durganmcbroom.resources.Resource
+import java.nio.file.Path
 
 public expect val mavenLocal: String
 
@@ -13,17 +15,19 @@ public class SimpleMavenLocalLayout(
 ) : SimpleMavenRepositoryLayout {
     override val name: String = "local"
 
-    override fun resourceOf(
+    override suspend fun resourceOf(
         groupId: String,
         artifactId: String,
         version: String,
         classifier: String?,
         type: String
-    ): Either<ResourceRetrievalException, CheckedResource> = (versionedArtifact(
+    ): JobResult<Resource, ResourceRetrievalException> = (versionedArtifact(
         groupId,
         artifactId,
         version
-    ) + pathSeparator + ("$artifactId-$version${classifier?.let { "-$it" } ?: ""}.$type")).let(::localResourceOf)
+    ) + pathSeparator + ("$artifactId-$version${classifier?.let { "-$it" } ?: ""}.$type")).let {
+        LocalResource(Path.of(it)).success()
+    }
 
     private fun baseArtifact(group: String, artifact: String): String =
         "$path$pathSeparator${group.replace('.', '/')}$pathSeparator$artifact"

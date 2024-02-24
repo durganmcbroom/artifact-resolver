@@ -5,4 +5,7 @@ import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomRepository
 
 public data class SimpleMavenRepositoryStub(
     val unresolvedRepository: PomRepository,
-) : RepositoryStub
+    val requireResourceVerification: Boolean
+) : RepositoryStub {
+    override val name: String = "${unresolvedRepository.name ?: "<unnamed>"}@${unresolvedRepository.url}"
+}

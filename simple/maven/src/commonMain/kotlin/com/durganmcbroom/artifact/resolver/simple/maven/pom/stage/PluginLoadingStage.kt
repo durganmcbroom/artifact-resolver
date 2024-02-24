@@ -8,14 +8,15 @@ import com.durganmcbroom.artifact.resolver.simple.maven.plugin.SimplePluginConfi
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomParsingException
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomProcessStage
+import com.durganmcbroom.jobs.JobResult
 
 // Maven extensions are also considered plugins
-internal class PluginLoadingStage :
-    PomProcessStage<PluginManagementInjectionStage.PluginManagementInjectionData, PluginLoadingStage.PluginLoadingData> {
-
+internal class PluginLoadingStage : PomProcessStage<PluginManagementInjectionStage.PluginManagementInjectionData, PluginLoadingStage.PluginLoadingData> {
     override val name = "Plugin loading"
 
-    override fun process(i: PluginManagementInjectionStage.PluginManagementInjectionData): Either<PomParsingException,PluginLoadingData> {
+    override suspend fun process(
+        i: PluginManagementInjectionStage.PluginManagementInjectionData
+    ): JobResult<PluginLoadingData,PomParsingException> {
         val (data, parents, repo) = i
 
         val plugins = data.build.plugins

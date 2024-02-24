@@ -6,16 +6,17 @@ import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandl
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomParsingException
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomProcessStage
+import com.durganmcbroom.jobs.JobResult
 
 internal class PrimaryInterpolationStage :
     PomProcessStage<PomInheritanceAssemblyStage.AssembledPomData, PrimaryInterpolationStage.PrimaryInterpolationData> {
 
     override val name: String = "Primary Interpolation"
 
-    override fun process(i: PomInheritanceAssemblyStage.AssembledPomData): Either<Nothing, PrimaryInterpolationData> {
+    override suspend fun process(i: PomInheritanceAssemblyStage.AssembledPomData): JobResult<PrimaryInterpolationData, Nothing> {
         val (data, parents, repo) = i
 
-        return PropertyReplacer.Companion.of(data, parents) {
+        return PropertyReplacer.of(data, parents) {
             val newData = doInterpolation(data)
 
             PrimaryInterpolationData(newData, parents, repo)

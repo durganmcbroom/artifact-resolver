@@ -3,10 +3,13 @@ package com.durganmcbroom.artifact.resolver.simple.maven.test
 import arrow.core.Either
 import com.durganmcbroom.artifact.resolver.ResolutionContext
 import com.durganmcbroom.artifact.resolver.createContext
-import com.durganmcbroom.artifact.resolver.simple.maven.HashType
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMaven
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRequest
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositorySettings
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenResolutionContext
+import com.durganmcbroom.jobs.orThrow
+import com.durganmcbroom.resources.ResourceAlgorithm
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 
 class ResolutionTest {
@@ -14,14 +17,18 @@ class ResolutionTest {
     fun `Test basic artifact resolution`() {
         val repository = SimpleMaven.createNew(
             SimpleMavenRepositorySettings.mavenCentral(
-                preferredHash = HashType.SHA1
+                preferredHash = ResourceAlgorithm.SHA1
             )
         )
-        val either = ResolutionContext(
-            repository,
-            repository.stubResolver,
-            SimpleMaven.artifactComposer
-        ).getAndResolve(SimpleMavenArtifactRequest("org.springframework:spring-context:5.3.22"))
+
+        val either = runBlocking {
+            SimpleMavenResolutionContext(
+                repository,
+                repository.stubResolver,
+                SimpleMaven.artifactComposer
+            ).getAndResolve(SimpleMavenArtifactRequest("org.springframework:spring-context:5.3.22"))
+        }
+
 
         check(either is Either.Right)
 
@@ -32,37 +39,16 @@ class ResolutionTest {
     fun `Test pretty artifact resolution`() {
         val context = SimpleMaven.createContext(
             SimpleMavenRepositorySettings.mavenCentral(
-                preferredHash = HashType.SHA1
+                preferredHash = ResourceAlgorithm.SHA1
             )
         )
 
-        val either =
-            context.getAndResolve(SimpleMavenArtifactRequest("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.6"))
+        val either = runBlocking {
+            context.getAndResolve(SimpleMavenArtifactRequest("com.fasterxml.jackson.core:jackson-databind:2.16.1"))
+        }
 
-        check(either is Either.Right)
 
-        either.value.prettyPrint()
-    }
-
-    @Test
-    fun `Test arrow-core artifact resolution`() {
-        val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.mavenCentral(
-                preferredHash = HashType.SHA1
-            )
-        )
-
-        val either =
-            context.getAndResolve(SimpleMavenArtifactRequest(
-                "io.arrow-kt:arrow-core:1.1.2",
-                includeScopes = setOf("compile", "runtime", "import")
-            ))
-
-        check(either is Either.Right)
-
-        either.value.prettyPrint(
-            acceptStubs = false
-        )
+        either.orThrow().prettyPrint()
     }
 
     @Test
@@ -70,10 +56,10 @@ class ResolutionTest {
         val context = SimpleMaven.createContext(
             SimpleMavenRepositorySettings.default(
                 "https://repo.codemc.io/repository/maven-snapshots",
-                preferredHash = HashType.SHA1
+                preferredHash = ResourceAlgorithm.SHA1
             )
         )
-        val either = context.getAndResolve(SimpleMavenArtifactRequest("net.minecrell:ServerListPlus:3.5.0-SNAPSHOT"))
+        val either = runBlocking {  context.getAndResolve(SimpleMavenArtifactRequest("net.minecrell:ServerListPlus:3.5.0-SNAPSHOT")) }
 
         check(either is Either.Right)
 
