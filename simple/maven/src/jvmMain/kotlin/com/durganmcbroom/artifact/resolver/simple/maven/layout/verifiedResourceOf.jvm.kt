@@ -20,7 +20,7 @@ internal actual suspend fun verifiedResourceOf(
         ?: raise(ResourceRetrievalException.IllegalState("Upon opening connection expected an HttpURLConnection however found something else. Requested resource was: '$location' and the checksum file was '$checksumLocation'"))
 
     val unverifiedResource = URL(location).toResource()
-        .mapLeft { ResourceRetrievalException(location, cause = it) }
+        .mapLeft { ResourceRetrievalException(cause = it) }
         .bind()
 
     if (checksumConnection.responseCode != 200) {

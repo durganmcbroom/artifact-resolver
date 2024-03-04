@@ -47,7 +47,6 @@ class ResolutionTest {
             context.getAndResolve(SimpleMavenArtifactRequest("com.fasterxml.jackson.core:jackson-databind:2.16.1"))
         }
 
-
         either.orThrow().prettyPrint()
     }
 

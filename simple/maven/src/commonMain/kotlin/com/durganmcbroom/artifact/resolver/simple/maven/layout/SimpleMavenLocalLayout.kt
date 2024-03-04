@@ -4,6 +4,7 @@ import com.durganmcbroom.jobs.JobResult
 import com.durganmcbroom.jobs.success
 import com.durganmcbroom.resources.LocalResource
 import com.durganmcbroom.resources.Resource
+import com.durganmcbroom.resources.toResource
 import java.nio.file.Path
 
 public expect val mavenLocal: String
@@ -26,7 +27,9 @@ public class SimpleMavenLocalLayout(
         artifactId,
         version
     ) + pathSeparator + ("$artifactId-$version${classifier?.let { "-$it" } ?: ""}.$type")).let {
-        LocalResource(Path.of(it)).success()
+        Path.of(it).toResource().mapLeft { e ->
+            ResourceRetrievalException(cause = e)
+        }
     }
 
     private fun baseArtifact(group: String, artifact: String): String =

@@ -1,11 +1,7 @@
 package com.durganmcbroom.artifact.resolver.simple.maven
 
-import arrow.core.Either
-import arrow.core.continuations.either
-import arrow.core.rightIfNotNull
 import com.durganmcbroom.artifact.resolver.MetadataHandler
 import com.durganmcbroom.artifact.resolver.MetadataRequestException
-import com.durganmcbroom.artifact.resolver.simple.maven.layout.ResourceRetrievalException
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.parsePom
 import com.durganmcbroom.jobs.*
