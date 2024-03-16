@@ -6,14 +6,14 @@ public open class SimpleMavenArtifactRequest @JvmOverloads constructor(
     override val descriptor: SimpleMavenDescriptor,
 
     public val isTransitive: Boolean = true,
-    public val includeScopes: Set<String> = setOf(),
+    public val includeScopes: Set<String> = setOf("compile", "runtime", "import"),
     public val excludeArtifacts: Set<String> = setOf()
 ) : ArtifactRequest<SimpleMavenDescriptor> {
     @JvmOverloads
     public constructor(
         descriptor: String,
         isTransitive: Boolean = true,
-        includeScopes: Set<String> = setOf(),
+        includeScopes: Set<String> = setOf("compile", "runtime", "import"),
         excludeArtifacts: Set<String> = setOf()
     ) : this(SimpleMavenDescriptor.parseDescription(descriptor)!!, isTransitive, includeScopes, excludeArtifacts)
 

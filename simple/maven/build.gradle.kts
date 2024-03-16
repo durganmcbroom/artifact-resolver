@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.durganmcbroom"
-version = "1.0-SNAPSHOT"
+version = "1.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -18,6 +18,8 @@ kotlin {
         compilations.all {
             kotlinOptions.jvmTarget = "17"
         }
+        jvmToolchain(17)
+
         withJava()
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -55,7 +57,6 @@ kotlin {
                 implementation(kotlin("stdlib"))
                 implementation(kotlin("reflect"))
                 implementation(project(":"))
-                implementation("io.arrow-kt:arrow-core:1.1.2")
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
             }

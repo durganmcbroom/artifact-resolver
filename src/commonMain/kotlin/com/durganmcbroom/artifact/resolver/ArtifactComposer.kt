@@ -1,10 +1,9 @@
 package com.durganmcbroom.artifact.resolver
 
-import arrow.core.Either
 
 public open class ArtifactComposer {
-    public open fun <T : ArtifactStub<*, *>> compose(
-        ref: ArtifactReference<*, T>,
-        children: List<Either<T, Artifact>>
-    ): Artifact = Artifact(ref.metadata, children)
+    public open fun <M: ArtifactMetadata<*, *>> compose(
+        ref: ArtifactReference<M, *>,
+        children: List<Artifact<M>>,
+    ): Artifact<M> = Artifact(ref.metadata, children)
 }

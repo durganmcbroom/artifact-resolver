@@ -1,15 +1,11 @@
 plugins {
-    kotlin("multiplatform") version "1.7.0"
+    kotlin("multiplatform") version "1.9.21"
     id("maven-publish")
-    id("org.jetbrains.dokka") version "1.6.21"
+    id("org.jetbrains.dokka") version "1.9.10"
 }
 
 group = "com.durganmcbroom"
-version = "1.0-SNAPSHOT"
-
-repositories {
-    mavenCentral()
-}
+version = "1.1-SNAPSHOT"
 
 kotlin {
     explicitApi()
@@ -18,6 +14,7 @@ kotlin {
         compilations.all {
             kotlinOptions.jvmTarget = "17"
         }
+        jvmToolchain(17)
         withJava()
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -36,17 +33,7 @@ kotlin {
                 targetCompatibility = "17"
                 sourceCompatibility = "17"
 
-                doFirst {
-                    options.compilerArgs.addAll(
-                        listOf(
-                            "--module-path", classpath.asPath,
-                            "--add-modules", "arrow.core.jvm",
-                            "--patch-module", "arrow.core.jvm=arrow-core-jvm-1.1.2.jar"
-                        )
-                    )
 
-                    classpath = files()
-                }
             }
         }
 
@@ -56,9 +43,9 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib"))
-                implementation("io.arrow-kt:arrow-core:1.1.2")
-                implementation(kotlin("reflect"))
 
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+                implementation(kotlin("reflect"))
             }
         }
         val commonTest by getting {
@@ -76,8 +63,17 @@ kotlin {
 }
 
 allprojects {
+    apply(plugin = "org.jetbrains.kotlin.multiplatform")
     apply(plugin = "maven-publish")
     apply(plugin = "org.jetbrains.dokka")
+
+    repositories {
+        mavenCentral()
+        maven {
+            url = uri("http://maven.yakclient.net/snapshots")
+            isAllowInsecureProtocol = true
+        }
+    }
 
     val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
 
@@ -86,6 +82,18 @@ allprojects {
         archiveClassifier.set("javadoc")
         from(dokkaHtml.outputDirectory)
     }
+
+    kotlin {
+        sourceSets {
+            val commonMain by getting {
+                dependencies {
+                    api("com.durganmcbroom:jobs:1.2-SNAPSHOT")
+                    implementation("com.durganmcbroom:resource-api:1.0-SNAPSHOT")
+                }
+            }
+        }
+    }
+
     publishing {
         repositories {
 //            maven {

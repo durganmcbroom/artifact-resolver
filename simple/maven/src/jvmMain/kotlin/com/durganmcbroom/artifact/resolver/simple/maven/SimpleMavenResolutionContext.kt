@@ -7,7 +7,7 @@ public class SimpleMavenResolutionContext public constructor(
     repo: SimpleMavenArtifactRepository,
     resolver: SimpleMavenArtifactStubResolver,
     composer: ArtifactComposer
-) : ResolutionContext<SimpleMavenArtifactRequest, SimpleMavenArtifactStub, SimpleMavenArtifactReference>(
+) : ResolutionContext<SimpleMavenArtifactRequest, SimpleMavenArtifactStub, SimpleMavenArtifactMetadata, SimpleMavenArtifactReference>(
     repo,
     resolver,
     composer

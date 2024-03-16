@@ -2,13 +2,13 @@ package com.durganmcbroom.artifact.resolver.simple.maven
 
 import com.durganmcbroom.artifact.resolver.ArtifactMetadata
 import com.durganmcbroom.artifact.resolver.ArtifactStub
-import com.durganmcbroom.artifact.resolver.CheckedResource
+import com.durganmcbroom.resources.Resource
 
 public typealias SimpleMavenArtifactStub = ArtifactStub<SimpleMavenArtifactRequest, SimpleMavenRepositoryStub>
 
 public open class SimpleMavenArtifactMetadata(
     desc: SimpleMavenDescriptor,
-    resource: CheckedResource?,
+    resource: Resource?,
     children: List<SimpleMavenChildInfo>
 ) : ArtifactMetadata<SimpleMavenDescriptor, SimpleMavenChildInfo>(desc, resource, children)
 

@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom
 
-import arrow.core.Either
+import com.durganmcbroom.jobs.Job
 
 // Stages :
 // Parent Resolution
@@ -14,7 +14,7 @@ import arrow.core.Either
 public interface PomProcessStage<in I: PomProcessStage.StageData, out O: PomProcessStage.StageData> {
     public val name: String
 
-    public fun process(i: I) : Either<PomParsingException, O>
+    public fun process(i: I) : Job<O>
 
     public interface StageData
 }

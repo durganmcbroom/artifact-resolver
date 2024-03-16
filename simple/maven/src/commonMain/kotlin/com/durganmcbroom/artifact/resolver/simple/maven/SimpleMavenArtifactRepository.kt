@@ -1,8 +1,10 @@
 package com.durganmcbroom.artifact.resolver.simple.maven
 
-import arrow.core.Either
-import arrow.core.continuations.either
-import com.durganmcbroom.artifact.resolver.*
+import com.durganmcbroom.artifact.resolver.ArtifactRepository
+import com.durganmcbroom.artifact.resolver.RepositoryFactory
+import com.durganmcbroom.jobs.Job
+import com.durganmcbroom.jobs.JobName
+import com.durganmcbroom.jobs.job
 
 public open class SimpleMavenArtifactRepository(
     final override val factory: RepositoryFactory<SimpleMavenRepositorySettings, SimpleMavenArtifactRequest, SimpleMavenArtifactStub, SimpleMavenArtifactReference, SimpleMavenArtifactRepository>,
@@ -21,8 +23,9 @@ public open class SimpleMavenArtifactRepository(
 
     override fun get(
         request: SimpleMavenArtifactRequest,
-    ): Either<ArtifactException, SimpleMavenArtifactReference> = either.eager {
-        val metadata = handler.requestMetadata(request.descriptor).bind()
+    ): Job<SimpleMavenArtifactReference> =
+        job(JobName("Resolve artifact reference for artifact: '${request.descriptor}'")){
+        val metadata = handler.requestMetadata(request.descriptor)().merge()
 
         val children = run {
             val rawChildren = metadata.children

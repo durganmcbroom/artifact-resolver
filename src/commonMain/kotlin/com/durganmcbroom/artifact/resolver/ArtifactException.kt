@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver
 
-public abstract class ArtifactException(public val message: String) {
+public abstract class ArtifactException(public override val message: String) : Exception() {
     public data class ArtifactNotFound(
         val desc: ArtifactMetadata.Descriptor,
         val searchedIn: List<String>,
