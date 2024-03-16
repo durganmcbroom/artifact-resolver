@@ -15,25 +15,19 @@ private val mapper = XmlMapper().registerModule(KotlinModule())
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
 
-public actual val SUPER_POM: PomData = runBlocking {
-    parseData(
-        object : Resource {
-            override val location: String = SUPER_POM_PATH
+public actual val SUPER_POM: PomData = parseData(
+    object : Resource {
+        override val location: String = SUPER_POM_PATH
 
-            override suspend fun open(): JobResult<ResourceStream, ResourceException> {
-                return SimpleMaven::class.java.getResourceAsStream(SUPER_POM_PATH)?.asResourceStream()?.success()
-                    ?: ResourceNotFoundException(location, FileNotFoundException()).failure()
-            }
+        override fun open(): ResourceStream {
+            return SimpleMaven::class.java.getResourceAsStream(SUPER_POM_PATH)?.asResourceStream()
+                ?: throw ResourceNotFoundException(location, FileNotFoundException())
         }
-    ).orThrow()
-}
+    }
+).call(EmptyJobContext).getOrThrow()
 
-public actual suspend fun parseData(resource: Resource): JobResult<PomData, PomParsingException> = jobScope {
-    val stream = resource.openStream().mapLeft {
-        PomParsingException.ResourceException(resource, it)
-    }.bind()
+public actual fun parseData(resource: Resource): Job<PomData> = job(JobName("Parse pom data: '${resource.location}'")) {
+    val stream = resource.openStream()
 
-    jobCatching(JobName("Parse POM: '${resource.location}'")) {
-        mapper.readValue<PomData>(stream)
-    }.mapLeft { PomParsingException.InvalidPom(resource.location, it) }.bind()
-}
+    mapper.readValue<PomData>(stream)
+}.mapException { PomParsingException.InvalidPom(resource.location, it) }

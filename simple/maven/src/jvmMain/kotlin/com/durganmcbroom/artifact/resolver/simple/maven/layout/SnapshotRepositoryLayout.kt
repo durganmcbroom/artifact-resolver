@@ -10,18 +10,12 @@ import com.fasterxml.jackson.module.kotlin.readValue
 
 private val mapper: ObjectMapper = XmlMapper().registerModule(KotlinModule())
 
-internal actual suspend fun parseSnapshotMetadata(
+internal actual fun parseSnapshotMetadata(
     resource: Resource
-): JobResult<Map<ArtifactAddress, String>, ResourceRetrievalException.MetadataParseFailed> =
+): Job<Map<ArtifactAddress, String>> =
     job(JobName("Parse snapshot metadata for snapshot artifact: '${resource.location}'")) {
         val tree = mapper.readValue<Map<String, Any>>(
             resource.openStream()
-                .mapLeft {
-                    ResourceRetrievalException.MetadataParseFailed(
-                        resource.location,
-                        "Failed to open stream for the given resource"
-                    )
-                }.bind()
         )
 
         val snapshotVersions =
@@ -46,8 +40,14 @@ internal actual suspend fun parseSnapshotMetadata(
             else -> null
         }
 
-        snapshots ?: raise(ResourceRetrievalException.MetadataParseFailed(
+        snapshots ?: throw ResourceRetrievalException.MetadataParseFailed(
             resource.location,
             "Unknown type for node 'snapshotVersion'. Expected a map or list."
-        ))
+        )
+    }.mapException {
+        ResourceRetrievalException.MetadataParseFailed(
+            resource.location,
+            "Error occurred while parsing metadata for resource: '${resource.location}'",
+            it
+        )
     }

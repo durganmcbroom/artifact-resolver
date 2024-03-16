@@ -1,7 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
-import com.durganmcbroom.jobs.JobResult
-import com.durganmcbroom.jobs.jobScope
+import com.durganmcbroom.jobs.*
 import com.durganmcbroom.resources.Resource
 import com.durganmcbroom.resources.ResourceAlgorithm
 import com.durganmcbroom.resources.VerifiedResource
@@ -10,25 +9,23 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
 
-internal actual suspend fun verifiedResourceOf(
+internal actual fun verifiedResourceOf(
     location: String,
     checksumLocation: String,
     algorithm: ResourceAlgorithm,
     requireVerification: Boolean
-): JobResult<Resource, ResourceRetrievalException> = jobScope {
+): Job<Resource> = job(JobName("Verify resource: '$location'")) {
     val checksumConnection = URL(checksumLocation).openConnection() as? HttpURLConnection
-        ?: raise(ResourceRetrievalException.IllegalState("Upon opening connection expected an HttpURLConnection however found something else. Requested resource was: '$location' and the checksum file was '$checksumLocation'"))
+        ?: throw ResourceRetrievalException.IllegalState("Upon opening connection expected an HttpURLConnection however found something else. Requested resource was: '$location' and the checksum file was '$checksumLocation'")
 
     val unverifiedResource = URL(location).toResource()
-        .mapLeft { ResourceRetrievalException(cause = it) }
-        .bind()
 
     if (checksumConnection.responseCode != 200) {
-        return@jobScope if (!requireVerification) unverifiedResource
-        else raise(ResourceRetrievalException.ChecksumFileNotFound(
+        return@job if (!requireVerification) unverifiedResource
+        else throw ResourceRetrievalException.ChecksumFileNotFound(
             location,
             algorithm.name,
-        ))
+        )
     }
 
     val checkString = String(checksumConnection.inputStream.readAllBytes())

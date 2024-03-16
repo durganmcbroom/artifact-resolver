@@ -1,19 +1,21 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import arrow.core.Either
-import arrow.core.right
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
-import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
-import com.durganmcbroom.jobs.JobResult
+import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomBuild
+import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
+import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomPlugin
+import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomProcessStage
+import com.durganmcbroom.jobs.Job
+import com.durganmcbroom.jobs.SuccessfulJob
 
 internal class PluginManagementInjectionStage :
     PomProcessStage<PrimaryInterpolationStage.PrimaryInterpolationData, PluginManagementInjectionStage.PluginManagementInjectionData> {
 
     override val name: String = "Plugin management injection"
 
-    override suspend fun process(
+    override fun process(
         i: PrimaryInterpolationStage.PrimaryInterpolationData
-    ): JobResult<PluginManagementInjectionData, PomParsingException> {
+    ): Job<PluginManagementInjectionData> {
         val (data, parents, repo) = i
 
         val build = data.build
@@ -41,7 +43,7 @@ internal class PluginManagementInjectionStage :
             )
         )
 
-        return PluginManagementInjectionData(newData, parents, repo).right()
+        return SuccessfulJob { PluginManagementInjectionData(newData, parents, repo) }
     }
 
     data class PluginManagementInjectionData(

@@ -17,7 +17,7 @@ public open class ResourceRetrievalException(
     public class NoEnabledFacet(descriptor: String, layout: SimpleMavenRepositoryLayout) :
         ResourceRetrievalException("Failed to find resource because no facet was enabled! The descriptor was: '$descriptor' and the layout was '${layout.name}'.",null)
 
-    public class MetadataParseFailed(location: String, reason: String) :
+    public class MetadataParseFailed(location: String, reason: String, override val cause: Throwable? = null) :
         ResourceRetrievalException("Failed to parse resource metadata in file '$location'. The reason was '$reason'.",null)
 
     public class SnapshotNotFound(classifier: String?, ending: String, basePath: String) :

@@ -2,9 +2,8 @@
 
 package com.durganmcbroom.artifact.resolver
 
-import com.durganmcbroom.jobs.JobResult
+import com.durganmcbroom.jobs.Job
 import com.durganmcbroom.jobs.job
-import com.durganmcbroom.jobs.jobScope
 
 public interface ArtifactRepositoryContext<R : ArtifactRequest<*>, S : ArtifactStub<R, *>, out A : ArtifactReference<*, S>> {
     public val artifactRepository: ArtifactRepository<R, S, A>
@@ -61,34 +60,33 @@ public open class ResolutionContext<R : ArtifactRequest<*>, S : ArtifactStub<R, 
         override val artifactComposer: ArtifactComposer = artifactComposer
     })
 
-    public suspend fun getAndResolve(request: R): JobResult<Artifact<M>, ArtifactException> = jobScope {
-        val artifact = repositoryContext.artifactRepository.get(request).bind()
+    public fun getAndResolve(request: R): Job<Artifact<M>> = job {
+        val artifact = repositoryContext.artifactRepository.get(request)().merge()
 
-        getAndResolve(artifact, HashMap(), setOf()).bind()
+        getAndResolve(artifact, HashMap(), setOf())().merge()
     }
 
-    private suspend fun getAndResolve(
+    private fun getAndResolve(
         artifact: T,
         cache: MutableMap<R, Artifact<M>>,
         trace: Set<ArtifactMetadata.Descriptor>
-    ): JobResult<Artifact<M>, ArtifactException> = job {
+    ): Job<Artifact<M>> = job {
         val newChildren = artifact.children.mapNotNull { cache[it.request] } + artifact.children
             .filterNot { cache.contains(it.request) }
             .map { child ->
-                if (trace.contains(child.request.descriptor)) raise(ArtifactResolutionException.CircularArtifacts(trace + artifact.metadata.descriptor))
+                if (trace.contains(child.request.descriptor)) throw ArtifactResolutionException.CircularArtifacts(trace + artifact.metadata.descriptor)
 
-                resolverContext.stubResolver.resolve(child)
-                    .mapLeft { child }
+                resolverContext.stubResolver.resolve(child)()
                     .map { it to child.request }
-            }.map { c ->
-                c.map { (it, req) ->
-                    getAndResolve(
-                        it,
-                        cache,
-                        trace + artifact.metadata.descriptor
-                    ).bind().also { a -> cache[req] = a }
-                }.mapLeft { ArtifactException.ArtifactNotFound(it.request.descriptor, it.candidates.map { it.name }) }
-                    .bind()
+                    .getOrNull() ?: throw ArtifactException.ArtifactNotFound(
+                    child.request.descriptor,
+                    child.candidates.map { it.name })
+            }.map { (it, req) ->
+                getAndResolve(
+                    it,
+                    cache,
+                    trace + artifact.metadata.descriptor
+                )().merge().also { a -> cache[req] = a }
             }
 
         composerContext.artifactComposer.compose(artifact, newChildren)

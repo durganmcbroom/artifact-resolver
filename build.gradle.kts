@@ -14,6 +14,7 @@ kotlin {
         compilations.all {
             kotlinOptions.jvmTarget = "17"
         }
+        jvmToolchain(17)
         withJava()
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -68,7 +69,6 @@ allprojects {
 
     repositories {
         mavenCentral()
-        mavenLocal()
         maven {
             url = uri("http://maven.yakclient.net/snapshots")
             isAllowInsecureProtocol = true
@@ -87,7 +87,7 @@ allprojects {
         sourceSets {
             val commonMain by getting {
                 dependencies {
-                    api("com.durganmcbroom:jobs:1.0-SNAPSHOT")
+                    api("com.durganmcbroom:jobs:1.2-SNAPSHOT")
                     implementation("com.durganmcbroom:resource-api:1.0-SNAPSHOT")
                 }
             }

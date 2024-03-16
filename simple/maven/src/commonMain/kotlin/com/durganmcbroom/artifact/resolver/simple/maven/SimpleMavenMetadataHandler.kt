@@ -12,19 +12,26 @@ public open class SimpleMavenMetadataHandler(
 ) : MetadataHandler<SimpleMavenRepositorySettings, SimpleMavenDescriptor, SimpleMavenArtifactMetadata> {
     public open val layout: SimpleMavenRepositoryLayout by settings::layout
 
-    override fun parseDescriptor(desc: String): JobResult<SimpleMavenDescriptor, MetadataRequestException.DescriptorParseFailed> =
-        SimpleMavenDescriptor.parseDescription(desc)?.success()
-            ?: MetadataRequestException.DescriptorParseFailed.failure()
+    override fun parseDescriptor(desc: String): Result<SimpleMavenDescriptor> = result {
+        SimpleMavenDescriptor.parseDescription(desc)
+            ?: throw MetadataRequestException.DescriptorParseFailed
+    }
 
-    override suspend fun requestMetadata(
+    override fun requestMetadata(
         desc: SimpleMavenDescriptor
-    ): JobResult<SimpleMavenArtifactMetadata, MetadataRequestException> =
+    ): Job<SimpleMavenArtifactMetadata> =
         job(JobName("Load metadata for maven artifact: '$desc'")) {
             val (group, artifact, version, classifier) = desc
 
-            val valueOr = layout.resourceOf(group, artifact, version, null, "pom").bind()
+            val valueOr = layout.resourceOf(group, artifact, version, null, "pom")()
+                .mapException {
+                    MetadataRequestException(
+                        "Failed to load pom: '$desc'", it
+                    )
+                }
+                .merge()
 
-            val pom = parsePom(valueOr).bind()
+            val pom = parsePom(valueOr)().merge()
 
             val dependencies = pom.dependencies
 
@@ -32,7 +39,7 @@ public open class SimpleMavenMetadataHandler(
                 SimpleMavenRepositoryStub(it, settings.requireResourceVerification)
             }
 
-            suspend fun handlePackaging(packaging: String): Resource? {
+            fun handlePackaging(packaging: String): Resource? {
                 val ending = when (packaging) {
                     "jar" -> "jar"
                     "war" -> "war"
@@ -48,7 +55,7 @@ public open class SimpleMavenMetadataHandler(
                     version,
                     classifier,
                     ending
-                ).orNull()
+                )().getOrNull()
             }
 
             SimpleMavenArtifactMetadata(

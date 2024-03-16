@@ -1,22 +1,21 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import arrow.core.Either
-import arrow.core.right
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
 import com.durganmcbroom.artifact.resolver.simple.maven.plugin.SimpleMavenPlugin
 import com.durganmcbroom.artifact.resolver.simple.maven.plugin.SimplePluginConfiguration
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
-import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomParsingException
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomProcessStage
-import com.durganmcbroom.jobs.JobResult
+import com.durganmcbroom.jobs.Job
+import com.durganmcbroom.jobs.SuccessfulJob
 
 // Maven extensions are also considered plugins
-internal class PluginLoadingStage : PomProcessStage<PluginManagementInjectionStage.PluginManagementInjectionData, PluginLoadingStage.PluginLoadingData> {
+internal class PluginLoadingStage :
+    PomProcessStage<PluginManagementInjectionStage.PluginManagementInjectionData, PluginLoadingStage.PluginLoadingData> {
     override val name = "Plugin loading"
 
-    override suspend fun process(
+    override fun process(
         i: PluginManagementInjectionStage.PluginManagementInjectionData
-    ): JobResult<PluginLoadingData,PomParsingException> {
+    ): Job<PluginLoadingData> {
         val (data, parents, repo) = i
 
         val plugins = data.build.plugins
@@ -38,7 +37,7 @@ internal class PluginLoadingStage : PomProcessStage<PluginManagementInjectionSta
             )
         }
 
-        return PluginLoadingData(data, repo, mockPlugins, parents).right()
+        return SuccessfulJob { PluginLoadingData(data, repo, mockPlugins, parents) }
     }
 
     data class PluginLoadingData(

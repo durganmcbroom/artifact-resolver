@@ -1,7 +1,7 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
-import com.durganmcbroom.jobs.JobResult
-import com.durganmcbroom.jobs.failure
+import com.durganmcbroom.jobs.FailingJob
+import com.durganmcbroom.jobs.Job
 import com.durganmcbroom.resources.Resource
 import com.durganmcbroom.resources.ResourceAlgorithm
 
@@ -17,18 +17,18 @@ public open class SimpleMavenDefaultLayout(
     private val releaseFacet = SimpleMavenReleaseFacet(url, preferredAlgorithm, requireResourceVerification)
     private val snapshotFacet = SimpleMavenSnapshotFacet(url, preferredAlgorithm, requireResourceVerification)
 
-    override suspend fun resourceOf(
+    override fun resourceOf(
         groupId: String,
         artifactId: String,
         version: String,
         classifier: String?,
         type: String
-    ): JobResult<Resource, ResourceRetrievalException> =
+    ): Job<Resource> =
         (if (version.endsWith("-SNAPSHOT") && snapshotsEnabled) snapshotFacet else if (releasesEnabled) releaseFacet else null)?.resourceOf(
             groupId,
             artifactId,
             version,
             classifier,
             type
-        ) ?: ResourceRetrievalException.NoEnabledFacet("$groupId:$artifactId:$version:${classifier?.let { "-$it" } ?: ""}:$type", this).failure()
+        ) ?: FailingJob {  ResourceRetrievalException.NoEnabledFacet("$groupId:$artifactId:$version:${classifier?.let { "-$it" } ?: ""}:$type", this) }
 }

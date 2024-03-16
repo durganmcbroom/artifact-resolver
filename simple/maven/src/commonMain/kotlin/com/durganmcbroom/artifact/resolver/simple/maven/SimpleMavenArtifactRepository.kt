@@ -1,10 +1,9 @@
 package com.durganmcbroom.artifact.resolver.simple.maven
 
-import arrow.core.Either
-import arrow.core.continuations.either
-import com.durganmcbroom.artifact.resolver.*
+import com.durganmcbroom.artifact.resolver.ArtifactRepository
+import com.durganmcbroom.artifact.resolver.RepositoryFactory
+import com.durganmcbroom.jobs.Job
 import com.durganmcbroom.jobs.JobName
-import com.durganmcbroom.jobs.JobResult
 import com.durganmcbroom.jobs.job
 
 public open class SimpleMavenArtifactRepository(
@@ -22,11 +21,11 @@ public open class SimpleMavenArtifactRepository(
             factory
         )
 
-    override suspend fun get(
+    override fun get(
         request: SimpleMavenArtifactRequest,
-    ): JobResult<SimpleMavenArtifactReference, ArtifactException> =
+    ): Job<SimpleMavenArtifactReference> =
         job(JobName("Resolve artifact reference for artifact: '${request.descriptor}'")){
-        val metadata = handler.requestMetadata(request.descriptor).bind()
+        val metadata = handler.requestMetadata(request.descriptor)().merge()
 
         val children = run {
             val rawChildren = metadata.children

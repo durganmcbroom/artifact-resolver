@@ -1,11 +1,5 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.test;
 
-import arrow.core.Either;
-import com.durganmcbroom.artifact.resolver.Artifact;
-import com.durganmcbroom.artifact.resolver.ArtifactException;
-import com.durganmcbroom.artifact.resolver.ArtifactResolver;
-import com.durganmcbroom.artifact.resolver.simple.maven.*;
-import com.durganmcbroom.resources.ResourceAlgorithm;
 import org.junit.jupiter.api.Test;
 
 public class JavaResolutionTest {

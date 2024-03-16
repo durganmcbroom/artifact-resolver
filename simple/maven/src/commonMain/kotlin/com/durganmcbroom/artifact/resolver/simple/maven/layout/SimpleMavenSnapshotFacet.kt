@@ -1,8 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
-import arrow.core.raise.ensureNotNull
-import com.durganmcbroom.jobs.JobResult
-import com.durganmcbroom.jobs.jobScope
+import com.durganmcbroom.jobs.*
 import com.durganmcbroom.resources.Resource
 import com.durganmcbroom.resources.ResourceAlgorithm
 
@@ -14,36 +12,34 @@ public class SimpleMavenSnapshotFacet(
     SimpleMavenReleaseFacet(url, preferredAlgorithm, requireResourceVerification) {
     override val type: String = "snapshot"
 
-    override suspend fun resourceOf(
+    override fun resourceOf(
         groupId: String,
         artifactId: String,
         version: String,
         classifier: String?,
         type: String
-    ): JobResult<Resource, ResourceRetrievalException> = jobScope {
-        val snapshots = parseSnapshotMetadata(versionMetaOf(groupId, artifactId, version).bind()).bind()
-        val snapshotVersion = snapshots[ArtifactAddress(classifier, type)]
-
-        val versionedArtifact = versionedArtifact(groupId, artifactId, version)
-        ensureNotNull(snapshotVersion) {
-            ResourceRetrievalException.SnapshotNotFound(
+    ): Job<Resource> = job(JobName("Find resource: '$groupId:$artifactId:$version:$classifier'")) {
+        val snapshots = parseSnapshotMetadata(versionMetaOf(groupId, artifactId, version)().merge())().merge()
+        val snapshotVersion =
+            snapshots[ArtifactAddress(classifier, type)] ?: throw ResourceRetrievalException.SnapshotNotFound(
                 classifier,
                 type,
-                versionedArtifact
+                versionedArtifact(groupId, artifactId, version)
             )
-        }
+
+        val versionedArtifact = versionedArtifact(groupId, artifactId, version)
+
 
         val s = "${artifactId}-${snapshotVersion}${classifier?.let { "-$it" } ?: ""}.$type"
-//        val timeStampVersioned = "$versionedArtifact/$snapshotVersion"
 
-        versionedArtifact.resourceAt(s, preferredAlgorithm, requireResourceVerification).bind()
-//            .getOrElse {
-//             Second type of snapshot repository layout.
-//            timeStampVersioned.resourceAt(s, preferredHash).bind()
-//        }
+        versionedArtifact.resourceAt(s, preferredAlgorithm, requireResourceVerification)().merge()
     }
 
-    protected suspend fun versionMetaOf(g: String, a: String, v: String): JobResult<Resource, ResourceRetrievalException> =
+    protected fun versionMetaOf(
+        g: String,
+        a: String,
+        v: String
+    ): Job<Resource> =
         versionedArtifact(g, a, v).resourceAt("maven-metadata.xml", preferredAlgorithm, requireResourceVerification)
 }
 
@@ -52,4 +48,4 @@ internal data class ArtifactAddress(
     val type: String
 )
 
-internal expect suspend fun parseSnapshotMetadata(resource: Resource): JobResult<Map<ArtifactAddress, String>, ResourceRetrievalException.MetadataParseFailed>
+internal expect fun parseSnapshotMetadata(resource: Resource): Job<Map<ArtifactAddress, String>>

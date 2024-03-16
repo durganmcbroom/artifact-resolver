@@ -1,29 +1,29 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import arrow.core.identity
-import arrow.core.raise.ensureNotNull
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
-import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenDefaultLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenCentral
+import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenDefaultLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
-import com.durganmcbroom.jobs.JobResult
-import com.durganmcbroom.jobs.jobScope
+import com.durganmcbroom.jobs.Job
+import com.durganmcbroom.jobs.JobName
+import com.durganmcbroom.jobs.job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 
 internal class ParentResolutionStage : PomProcessStage<WrappedPomData, ParentResolutionStage.ParentResolutionData> {
     override val name: String = "Parent Resolution"
 
-    override suspend fun process(
+    override fun process(
         i: WrappedPomData
-    ): JobResult<ParentResolutionData, PomParsingException> = jobScope {
+    ): Job<ParentResolutionData> = job(JobName("Process pom for stage: '$name'")) {
         val (data, repo) = i
 
-        suspend fun recursivelyLoadParents(
+        fun recursivelyLoadParents(
             child: PomData,
             thisLayout: SimpleMavenRepositoryLayout
-        ): JobResult<List<PomData>, PomParsingException> = jobScope loadParents@{
+        ): Job<List<PomData>> = job(JobName("Recursively load parent for pom stage: '$name'")) loadParents@{
             val parent: PomParent = child.parent ?: return@loadParents listOf(SUPER_POM)
 
             val mavenCentral = SimpleMavenCentral(repo.settings.preferredHash)
@@ -37,32 +37,32 @@ internal class ParentResolutionStage : PomProcessStage<WrappedPomData, ParentRes
                 )
             }
 
-            val artifact = immediateRepos.map {
-                async {
-                    it.resourceOf(
-                        parent.groupId,
-                        parent.artifactId,
-                        parent.version,
-                        null,
-                        "pom"
-                    ).getOrNull()
-                }
-            }.awaitAll().firstNotNullOf(::identity)
+            val artifact = runBlocking {
+                immediateRepos.map {
+                    async {
+                        it.resourceOf(
+                            parent.groupId,
+                            parent.artifactId,
+                            parent.version,
+                            null,
+                            "pom"
+                        )
+                    }
+                }.awaitAll().firstNotNullOfOrNull { it().getOrNull() }
+            } ?: throw (
+                    PomParsingException.PomNotFound(
+                        "${parent.groupId}:${parent.artifactId}:${parent.version}",
+                        immediateRepos.map(SimpleMavenRepositoryLayout::name),
+                        this@ParentResolutionStage
+                    )
+                    )
 
-            ensureNotNull(artifact) {
-                PomParsingException.PomNotFound(
-                    "${parent.groupId}:${parent.artifactId}:${parent.version}",
-                    immediateRepos.map(SimpleMavenRepositoryLayout::name),
-                    this@ParentResolutionStage
-                )
-            }
+            val parentData = parseData(artifact)().merge()
 
-            val parentData = parseData(artifact).bind()
-
-            listOf(parentData) + recursivelyLoadParents(parentData, thisLayout).bind()
+            listOf(parentData) + recursivelyLoadParents(parentData, thisLayout)().merge()
         }
 
-        ParentResolutionData(data, i.thisRepo, recursivelyLoadParents(data, i.thisRepo.layout).bind())
+        ParentResolutionData(data, i.thisRepo, recursivelyLoadParents(data, i.thisRepo.layout)().merge())
     }
 
     data class ParentResolutionData(
