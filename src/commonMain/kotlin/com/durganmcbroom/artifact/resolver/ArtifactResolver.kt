@@ -65,7 +65,8 @@ public open class ResolutionContext<R : ArtifactRequest<*>, S : ArtifactStub<R, 
         val artifact = repositoryContext.artifactRepository.get(request)().mapException {
             if (it is MetadataRequestException.MetadataNotFound) ArtifactException.ArtifactNotFound(
                 request.descriptor,
-                listOf(repositoryContext.artifactRepository.handler.settings.toString())
+                listOf(repositoryContext.artifactRepository.handler.settings.toString()),
+                it
             ) else it
         }.merge()
 
@@ -84,9 +85,11 @@ public open class ResolutionContext<R : ArtifactRequest<*>, S : ArtifactStub<R, 
 
                 resolverContext.stubResolver.resolve(child)()
                     .map { it to child.request }
-                    .getOrNull() ?: throw ArtifactException.ArtifactNotFound(
-                    child.request.descriptor,
-                    child.candidates.map { it.name })
+                    .mapException {
+                        ArtifactException.ArtifactNotFound(
+                            child.request.descriptor,
+                            child.candidates.map { it.name }, it)
+                    }.merge()
             }.map { (it, req) ->
                 getAndResolve(
                     it,

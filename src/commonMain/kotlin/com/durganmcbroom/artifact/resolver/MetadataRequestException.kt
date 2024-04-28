@@ -10,6 +10,7 @@ public open class MetadataRequestException(
 
     public  class MetadataNotFound(
         descriptor: ArtifactMetadata.Descriptor,
-        resource: String
-    ) : MetadataRequestException("Failed to find '$resource' of '$descriptor' in this handler.")
+        resource: String,
+        cause: Throwable? = null
+    ) : MetadataRequestException("Failed to find '$resource' of '$descriptor' in this handler.", cause)
 }

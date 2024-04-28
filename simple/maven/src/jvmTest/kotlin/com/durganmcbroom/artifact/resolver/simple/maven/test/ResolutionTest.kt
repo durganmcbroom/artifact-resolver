@@ -61,7 +61,7 @@ class ResolutionTest {
     fun `Test pretty artifact resolution`() {
         val context = SimpleMaven.createContext(
             SimpleMavenRepositorySettings.default(
-                url = "http://maven.yakclient.net",
+                url = "http://maven.yakclient.net/snapshots",
                 preferredHash = ResourceAlgorithm.SHA1,
             )
         )

@@ -21,7 +21,6 @@ public open class SimpleMavenArtifactStubResolver(
             .map { it.get(stub.request)() }
             .firstOrNull(Result<*>::isSuccess)?.merge()
 
-        bind
-            ?: throw ArtifactException.ArtifactNotFound(stub.request.descriptor, repositories.map { it.name })
+        bind ?: throw ArtifactException.ArtifactNotFound(stub.request.descriptor, repositories.map { it.name })
     }
 }
