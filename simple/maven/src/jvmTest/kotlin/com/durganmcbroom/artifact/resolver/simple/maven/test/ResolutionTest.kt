@@ -55,20 +55,19 @@ class ResolutionTest {
             }
             expectedArtifact.checkDescriptorsEquals(artifact)
         }
-
-
     }
 
     @Test
     fun `Test pretty artifact resolution`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.mavenCentral(
-                preferredHash = ResourceAlgorithm.SHA1
+            SimpleMavenRepositorySettings.default(
+                url = "http://maven.yakclient.net",
+                preferredHash = ResourceAlgorithm.SHA1,
             )
         )
 
         launch {
-           val artifact =  context.getAndResolve(SimpleMavenArtifactRequest("com.fasterxml.jackson.core:jackson-databind:2.16.1"))().merge()
+           val artifact =  context.getAndResolve(SimpleMavenArtifactRequest("net.yakclient:boot:2.1-SNAPSHOT"))().merge()
 
             artifact.prettyPrint()
         }
@@ -102,6 +101,4 @@ class ResolutionTest {
             }.checkDescriptorsEquals(artifact)
         }
     }
-
-
 }

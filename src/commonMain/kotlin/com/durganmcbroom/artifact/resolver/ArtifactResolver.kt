@@ -4,6 +4,7 @@ package com.durganmcbroom.artifact.resolver
 
 import com.durganmcbroom.jobs.Job
 import com.durganmcbroom.jobs.job
+import com.durganmcbroom.jobs.mapException
 
 public interface ArtifactRepositoryContext<R : ArtifactRequest<*>, S : ArtifactStub<R, *>, out A : ArtifactReference<*, S>> {
     public val artifactRepository: ArtifactRepository<R, S, A>
@@ -61,7 +62,12 @@ public open class ResolutionContext<R : ArtifactRequest<*>, S : ArtifactStub<R, 
     })
 
     public fun getAndResolve(request: R): Job<Artifact<M>> = job {
-        val artifact = repositoryContext.artifactRepository.get(request)().merge()
+        val artifact = repositoryContext.artifactRepository.get(request)().mapException {
+            if (it is MetadataRequestException.MetadataNotFound) ArtifactException.ArtifactNotFound(
+                request.descriptor,
+                listOf(repositoryContext.artifactRepository.handler.settings.toString())
+            ) else it
+        }.merge()
 
         getAndResolve(artifact, HashMap(), setOf())().merge()
     }
