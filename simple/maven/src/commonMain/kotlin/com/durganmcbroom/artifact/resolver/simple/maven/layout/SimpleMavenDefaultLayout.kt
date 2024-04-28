@@ -30,5 +30,5 @@ public open class SimpleMavenDefaultLayout(
             version,
             classifier,
             type
-        ) ?: FailingJob {  ResourceRetrievalException.NoEnabledFacet("$groupId:$artifactId:$version:${classifier?.let { "-$it" } ?: ""}:$type", this) }
+        ) ?: FailingJob { ResourceRetrievalException.NoEnabledFacet("$groupId:$artifactId:$version:${classifier?.let { "-$it" } ?: ""}:$type", this) }
 }

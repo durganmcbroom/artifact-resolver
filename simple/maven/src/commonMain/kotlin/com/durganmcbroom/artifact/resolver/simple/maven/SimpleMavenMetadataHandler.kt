@@ -6,6 +6,8 @@ import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenReposi
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.parsePom
 import com.durganmcbroom.jobs.*
 import com.durganmcbroom.resources.Resource
+import com.durganmcbroom.resources.ResourceNotFoundException
+import com.durganmcbroom.resources.ResourceOpenException
 
 public open class SimpleMavenMetadataHandler(
     final override val settings: SimpleMavenRepositorySettings,
@@ -25,11 +27,9 @@ public open class SimpleMavenMetadataHandler(
 
             val valueOr = layout.resourceOf(group, artifact, version, null, "pom")()
                 .mapException {
-                    MetadataRequestException(
-                        "Failed to load pom: '$desc'", it
-                    )
-                }
-                .merge()
+                    if (it is ResourceOpenException && it.cause is ResourceNotFoundException) MetadataRequestException.MetadataNotFound(desc, "pom")
+                    else it
+                }.merge()
 
             val pom = parsePom(valueOr)().merge()
 
