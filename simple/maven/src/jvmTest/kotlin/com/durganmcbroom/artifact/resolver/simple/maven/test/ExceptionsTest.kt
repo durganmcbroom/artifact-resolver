@@ -1,5 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.test
 
+import com.durganmcbroom.artifact.resolver.ArtifactException
 import com.durganmcbroom.artifact.resolver.MetadataRequestException
 import com.durganmcbroom.artifact.resolver.createContext
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMaven
@@ -8,6 +9,7 @@ import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositorySet
 import com.durganmcbroom.jobs.job
 import com.durganmcbroom.jobs.launch
 import com.durganmcbroom.resources.ResourceAlgorithm
+import com.durganmcbroom.resources.ResourceOpenException
 import kotlin.test.Test
 
 
@@ -22,7 +24,7 @@ class ExceptionsTest {
         )
 
         launch {
-            val r =job {
+            val r = job {
                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
             }()
 
@@ -30,8 +32,9 @@ class ExceptionsTest {
             check(r.isFailure && r.exceptionOrNull() is MetadataRequestException) {""}
         }
     }
+
     @Test
-    fun `Reposito ry doesnt exist`() {
+    fun `Repository doesnt exist`() {
         val context = SimpleMaven.createContext(
             SimpleMavenRepositorySettings.default(
                 "https://doesntexist.yes",
@@ -45,9 +48,29 @@ class ExceptionsTest {
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
-            check(r.isFailure && r.exceptionOrNull() is MetadataRequestException) {""}
+            check(r.isFailure && r.exceptionOrNull() is MetadataRequestException && r.exceptionOrNull()?.cause is ResourceOpenException) {""}
         }
     }
+
+    @Test
+    fun `Artifact doesnt exist`() {
+        val context = SimpleMaven.createContext(
+            SimpleMavenRepositorySettings.default(
+                "http://maven.yakclient.net/snapshots",
+                preferredHash = ResourceAlgorithm.SHA1
+            )
+        )
+
+        launch {
+            val r =job {
+                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
+            }()
+
+            r.exceptionOrNull()!!.printStackTrace()
+            check(r.isFailure && r.exceptionOrNull() is ArtifactException.ArtifactNotFound) {""}
+        }
+    }
+
     @Test
     fun `Illegal artifact`() {
         val context = SimpleMaven.createContext(SimpleMavenRepositorySettings.mavenCentral())
@@ -58,7 +81,7 @@ class ExceptionsTest {
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
-            check(r.isFailure && r.exceptionOrNull() is MetadataRequestException) {""}
+            check(r.isFailure && r.exceptionOrNull() is ArtifactException.ArtifactNotFound) {""}
         }
     }
 }

@@ -28,7 +28,7 @@ public open class SimpleMavenMetadataHandler(
             val valueOr = layout.resourceOf(group, artifact, version, null, "pom")()
                 .mapException {
                     if (it is ResourceOpenException && it.cause is ResourceNotFoundException) MetadataRequestException.MetadataNotFound(desc, "pom", it)
-                    else it
+                    else MetadataRequestException("Failed to request resource for pom: '$desc'", it)
                 }.merge()
 
             val pom = parsePom(valueOr)().merge()
