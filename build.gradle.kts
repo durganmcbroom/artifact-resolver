@@ -4,8 +4,6 @@ plugins {
     id("org.jetbrains.dokka") version "1.9.10"
 }
 
-group = "com.durganmcbroom"
-version = "1.1-SNAPSHOT"
 
 kotlin {
     explicitApi()
@@ -67,7 +65,11 @@ allprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "org.jetbrains.dokka")
 
+    group = "com.durganmcbroom"
+    version = "1.1.1-SNAPSHOT"
+
     repositories {
+        mavenLocal()
         mavenCentral()
         maven {
             url = uri("http://maven.yakclient.net/snapshots")
@@ -88,7 +90,7 @@ allprojects {
             val commonMain by getting {
                 dependencies {
                     api("com.durganmcbroom:jobs:1.2-SNAPSHOT")
-                    implementation("com.durganmcbroom:resource-api:1.0-SNAPSHOT")
+                    implementation("com.durganmcbroom:resource-api:1.1-SNAPSHOT")
                 }
             }
         }
@@ -127,6 +129,13 @@ allprojects {
 
 val publishAll by tasks.registering {
     val taskName = "publish"
+
+    dependsOn(project(":simple-maven").tasks[taskName])
+    dependsOn(tasks[taskName])
+}
+
+val publishAllLocally by tasks.registering {
+    val taskName = "publishToMavenLocal"
 
     dependsOn(project(":simple-maven").tasks[taskName])
     dependsOn(tasks[taskName])

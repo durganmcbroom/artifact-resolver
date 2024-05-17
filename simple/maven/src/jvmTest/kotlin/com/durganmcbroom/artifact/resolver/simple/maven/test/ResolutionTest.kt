@@ -7,7 +7,8 @@ import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositorySet
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenResolutionContext
 import com.durganmcbroom.jobs.launch
 import com.durganmcbroom.resources.ResourceAlgorithm
-import kotlinx.coroutines.runBlocking
+import com.durganmcbroom.resources.useConnection
+import java.net.URL
 import kotlin.test.Test
 
 class ResolutionTest {
@@ -18,7 +19,7 @@ class ResolutionTest {
                 preferredHash = ResourceAlgorithm.SHA1
             )
         )
-
+        System.setProperty("http.keepAlive", "false");
         launch {
            val artifact = SimpleMavenResolutionContext(
                 repository,
@@ -59,15 +60,13 @@ class ResolutionTest {
 
     @Test
     fun `Test pretty artifact resolution`() {
+
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.default(
-                url = "http://maven.yakclient.net/snapshots",
-                preferredHash = ResourceAlgorithm.SHA1,
-            )
+            SimpleMavenRepositorySettings.mavenCentral()
         )
 
         launch {
-           val artifact =  context.getAndResolve(SimpleMavenArtifactRequest("net.yakclient:boot:2.1-SNAPSHOT"))().merge()
+           val artifact =  context.getAndResolve(SimpleMavenArtifactRequest("org.jetbrains.kotlin:kotlin-stdlib:1.9.21"))().merge()
 
             artifact.prettyPrint()
         }

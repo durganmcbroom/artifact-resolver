@@ -86,9 +86,11 @@ public open class ResolutionContext<R : ArtifactRequest<*>, S : ArtifactStub<R, 
                 resolverContext.stubResolver.resolve(child)()
                     .map { it to child.request }
                     .mapException {
-                        ArtifactException.ArtifactNotFound(
-                            child.request.descriptor,
-                            child.candidates.map { it.name }, it)
+                        if (it is MetadataRequestException.MetadataNotFound)
+                            ArtifactException.ArtifactNotFound(
+                                child.request.descriptor,
+                                child.candidates.map { it.name }, it
+                            ) else it
                     }.merge()
             }.map { (it, req) ->
                 getAndResolve(

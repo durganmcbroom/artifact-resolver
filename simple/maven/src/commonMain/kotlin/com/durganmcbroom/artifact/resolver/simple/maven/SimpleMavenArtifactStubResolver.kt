@@ -11,16 +11,26 @@ public open class SimpleMavenArtifactStubResolver(
     override fun resolve(
         stub: SimpleMavenArtifactStub
     ): Job<SimpleMavenArtifactReference> = job {
-        val settings = stub.candidates
-            .map(repositoryResolver::resolve)
-            .map { it.merge() }
+        val settings = stub.candidates.map(repositoryResolver::resolve).map { it.merge() }
 
         val repositories = settings.map(factory::createNew)
 
-        val bind = repositories
-            .firstNotNullOfOrNull { it.get(stub.request)() }
-            ?.getOrNull()
+        val exceptions = ArrayList<Throwable>()
 
-        bind ?: throw ArtifactException.ArtifactNotFound(stub.request.descriptor, repositories.map { it.name })
+        val bind = repositories.firstNotNullOfOrNull {
+            val r = it.get(stub.request)()
+
+            r.getOrNull() ?: run {
+                exceptions.add(r.exceptionOrNull()!!)
+                null
+            }
+        }
+
+        bind ?: (if (exceptions.all { it is MetadataRequestException.MetadataNotFound }) throw ArtifactException.ArtifactNotFound(
+                stub.request.descriptor,
+                repositories.map { it.name })
+            else throw IterableException(
+                "Failed to resolve '${stub.request.descriptor}'", exceptions
+            ))
     }
 }

@@ -1,14 +1,5 @@
 plugins {
     kotlin("multiplatform")
-//    id("maven-publish")
-//    id("org.jetbrains.dokka")
-}
-
-group = "com.durganmcbroom"
-version = "1.1-SNAPSHOT"
-
-repositories {
-    mavenCentral()
 }
 
 kotlin {
