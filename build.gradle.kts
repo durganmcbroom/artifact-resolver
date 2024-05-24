@@ -25,16 +25,11 @@ kotlin {
         }
 
         val main by compilations.getting {
-            compileKotlinTask.destinationDirectory.set(compileJavaTaskProvider!!.get().destinationDirectory.asFile.get())
-
             compileJavaTaskProvider!!.get().run {
                 targetCompatibility = "17"
                 sourceCompatibility = "17"
-
-
             }
         }
-
     }
 
     sourceSets {
@@ -66,7 +61,7 @@ allprojects {
     apply(plugin = "org.jetbrains.dokka")
 
     group = "com.durganmcbroom"
-    version = "1.1.2-SNAPSHOT"
+    version = "1.1.3-SNAPSHOT"
 
     repositories {
         mavenLocal()
@@ -90,7 +85,7 @@ allprojects {
             val commonMain by getting {
                 dependencies {
                     api("com.durganmcbroom:jobs:1.2-SNAPSHOT")
-                    implementation("com.durganmcbroom:resource-api:1.1.1-SNAPSHOT")
+                    implementation("com.durganmcbroom:resource-api:1.1.2-SNAPSHOT")
                 }
             }
         }
@@ -98,18 +93,6 @@ allprojects {
 
     publishing {
         repositories {
-//            maven {
-//                name = "github"
-//                url = uri("https://maven.pkg.github.com/durganmcbroom/artifact-resolver")
-//
-//                credentials {
-//                    username = project.findProperty("maven.user") as String?
-//                    password = project.findProperty("maven.key") as String?
-//                }
-//                authentication {
-//                    create<BasicAuthentication>("basic")
-//                }
-//            }
             maven {
                 name = "yakclient-repo"
                 url = uri("http://maven.yakclient.net/snapshots")
