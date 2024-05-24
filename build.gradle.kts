@@ -66,7 +66,7 @@ allprojects {
     apply(plugin = "org.jetbrains.dokka")
 
     group = "com.durganmcbroom"
-    version = "1.1.1-SNAPSHOT"
+    version = "1.1.2-SNAPSHOT"
 
     repositories {
         mavenLocal()
@@ -90,7 +90,7 @@ allprojects {
             val commonMain by getting {
                 dependencies {
                     api("com.durganmcbroom:jobs:1.2-SNAPSHOT")
-                    implementation("com.durganmcbroom:resource-api:1.1-SNAPSHOT")
+                    implementation("com.durganmcbroom:resource-api:1.1.1-SNAPSHOT")
                 }
             }
         }

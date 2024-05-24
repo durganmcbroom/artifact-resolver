@@ -34,5 +34,5 @@ internal actual fun verifiedResourceOf(
             algorithm,
             check
         )
-    }
+    }.use { it.value }
 }
