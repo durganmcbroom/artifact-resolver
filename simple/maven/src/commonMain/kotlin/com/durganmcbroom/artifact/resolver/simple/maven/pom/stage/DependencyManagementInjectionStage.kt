@@ -21,7 +21,7 @@ internal class DependencyManagementInjectionStage :
 
         val layouts = listOf(repo.layout) + data.repositories.map {
             if (it.layout != "default") {
-                throw PomParsingException.InvalidRepository(
+                throw PomException.InvalidRepository(
                     it.layout,
                     "${data.groupId}:${data.artifactId}:${data.version}",
                     it.name ?: it.id ?: "<unknown>"
@@ -48,7 +48,7 @@ internal class DependencyManagementInjectionStage :
                         null,
                         "pom"
                     )().getOrNull()
-                } ?: throw PomParsingException.PomNotFound(
+                } ?: throw PomException.PomNotFound(
                     "'${bom.groupId}:${bom.artifactId}:${bom.version}'",
                     layouts.map(SimpleMavenRepositoryLayout::name),
                     this@DependencyManagementInjectionStage
@@ -66,7 +66,7 @@ internal class DependencyManagementInjectionStage :
             MavenDependency(
                 dep.groupId,
                 dep.artifactId,
-                dep.version ?: managed?.version ?: throw PomParsingException.DependencyManagementInjectionFailure,
+                dep.version ?: managed?.version ?: throw PomException.DependencyManagementInjectionFailure,
                 dep.classifier ?: managed?.classifier,
                 dep.scope ?: managed?.scope
             )

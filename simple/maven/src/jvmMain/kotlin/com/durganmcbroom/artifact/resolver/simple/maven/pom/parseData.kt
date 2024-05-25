@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import kotlinx.coroutines.runBlocking
 import java.io.FileNotFoundException
 
 private val mapper = XmlMapper().registerModule(KotlinModule())
@@ -30,4 +29,4 @@ public actual fun parseData(resource: Resource): Job<PomData> = job(JobName("Par
     val stream = resource.openStream()
 
     mapper.readValue<PomData>(stream)
-}.mapException { PomParsingException.InvalidPom(resource.location, it) }
+}.mapException { PomException.ParseException(resource.location, it) }

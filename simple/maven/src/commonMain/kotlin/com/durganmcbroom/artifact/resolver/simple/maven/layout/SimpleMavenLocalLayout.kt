@@ -29,7 +29,7 @@ public class SimpleMavenLocalLayout(
         ) + pathSeparator + ("$artifactId-$version${classifier?.let { "-$it" } ?: ""}.$type")).let {
             Path.of(it).toResource()
         }
-    }.mapException { ResourceRetrievalException(cause = it) }
+    }
 
     private fun baseArtifact(group: String, artifact: String): String =
         "$path$pathSeparator${group.replace('.', '/')}$pathSeparator$artifact"

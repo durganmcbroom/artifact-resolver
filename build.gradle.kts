@@ -61,10 +61,9 @@ allprojects {
     apply(plugin = "org.jetbrains.dokka")
 
     group = "com.durganmcbroom"
-    version = "1.1.3-SNAPSHOT"
+    version = "1.1.4-SNAPSHOT"
 
     repositories {
-        mavenLocal()
         mavenCentral()
         maven {
             url = uri("http://maven.yakclient.net/snapshots")
@@ -85,7 +84,7 @@ allprojects {
             val commonMain by getting {
                 dependencies {
                     api("com.durganmcbroom:jobs:1.2-SNAPSHOT")
-                    implementation("com.durganmcbroom:resource-api:1.1.2-SNAPSHOT")
+                    implementation("com.durganmcbroom:resource-api:1.1.3-SNAPSHOT")
                 }
             }
         }

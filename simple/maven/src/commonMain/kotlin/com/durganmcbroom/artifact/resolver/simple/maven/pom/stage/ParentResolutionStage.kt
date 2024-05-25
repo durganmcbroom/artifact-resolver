@@ -50,7 +50,7 @@ internal class ParentResolutionStage : PomProcessStage<WrappedPomData, ParentRes
                     }
                 }.awaitAll().firstNotNullOfOrNull { it().getOrNull() }
             } ?: throw (
-                    PomParsingException.PomNotFound(
+                    PomException.PomNotFound(
                         "${parent.groupId}:${parent.artifactId}:${parent.version}",
                         immediateRepos.map(SimpleMavenRepositoryLayout::name),
                         this@ParentResolutionStage

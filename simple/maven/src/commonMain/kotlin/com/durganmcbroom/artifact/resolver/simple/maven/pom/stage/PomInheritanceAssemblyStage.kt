@@ -4,6 +4,7 @@ import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandl
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
 import com.durganmcbroom.jobs.Job
 import com.durganmcbroom.jobs.SuccessfulJob
+import kotlin.reflect.KProperty1
 
 internal class PomInheritanceAssemblyStage :
     PomProcessStage<ParentResolutionStage.ParentResolutionData, PomInheritanceAssemblyStage.AssembledPomData> {
@@ -15,8 +16,10 @@ internal class PomInheritanceAssemblyStage :
         val (data, ref, parents) = i
 
         val all = listOf(data) + parents
-        fun <T> travelUntil(req: (PomData) -> T?): T =
-            all.firstNotNullOfOrNull(req) ?: throw IllegalArgumentException("Failed to find value in all poms!")
+        fun <T> travelUntil(req: KProperty1<PomData, T>): T =
+            all.firstNotNullOfOrNull {req.get(it)} ?: throw IllegalArgumentException(
+                "Failed to find value for field : '${req.name}' in the pom hierarchy."
+            )
 
         val groupId = travelUntil(PomData::groupId)
         val artifactId = data.artifactId
