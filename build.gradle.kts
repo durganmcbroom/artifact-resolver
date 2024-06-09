@@ -66,8 +66,7 @@ allprojects {
     repositories {
         mavenCentral()
         maven {
-            url = uri("http://maven.yakclient.net/snapshots")
-            isAllowInsecureProtocol = true
+            url = uri("shttp://maven.extframework.dev/snapshots")
         }
     }
 
@@ -93,9 +92,8 @@ allprojects {
     publishing {
         repositories {
             maven {
-                name = "yakclient-repo"
-                url = uri("http://maven.yakclient.net/snapshots")
-                isAllowInsecureProtocol = true
+                name = "extframework-repo"
+                url = uri("https://maven.extframework.dev/snapshots")
 
                 credentials {
                     username = project.findProperty("maven.user") as String?

@@ -58,7 +58,7 @@ class ExceptionsTest {
     fun `Artifact doesnt exist`() {
         val context = SimpleMaven.createContext(
             SimpleMavenRepositorySettings.default(
-                "http://maven.yakclient.net/snapshots",
+                "https://maven.extframework.dev/snapshots",
                 preferredHash = ResourceAlgorithm.SHA1
             )
         )
