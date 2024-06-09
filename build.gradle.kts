@@ -66,7 +66,7 @@ allprojects {
     repositories {
         mavenCentral()
         maven {
-            url = uri("shttp://maven.extframework.dev/snapshots")
+            url = uri("http://maven.extframework.dev/snapshots")
         }
     }
 
