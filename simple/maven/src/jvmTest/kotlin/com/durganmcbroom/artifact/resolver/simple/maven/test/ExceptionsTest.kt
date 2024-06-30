@@ -68,6 +68,7 @@ class ExceptionsTest {
                 context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
             }()
 
+            println(r.exceptionOrNull()?.message)
             r.exceptionOrNull()!!.printStackTrace()
             check(r.isFailure && r.exceptionOrNull() is ArtifactException.ArtifactNotFound) {""}
         }

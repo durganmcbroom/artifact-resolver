@@ -26,9 +26,11 @@ public open class SimpleMavenArtifactStubResolver(
             }
         }
 
-        bind ?: (if (exceptions.all { it is MetadataRequestException.MetadataNotFound }) throw ArtifactException.ArtifactNotFound(
+        bind
+            ?: (if (exceptions.all { it is MetadataRequestException.MetadataNotFound }) throw MetadataRequestException.MetadataNotFound(
                 stub.request.descriptor,
-                repositories.map { it.name })
+                "pom"
+            )
             else throw IterableException(
                 "Failed to resolve '${stub.request.descriptor}'", exceptions
             ))
