@@ -13,7 +13,13 @@ class ExceptionalTest {
             object : ArtifactMetadata.Descriptor {
                 override val name: String = "asdf"
             },
-            listOf("Maven", "More maven", "even more maven", "Hopscotch")
+            listOf("Maven", "More maven", "even more maven", "Hopscotch"),
+            listOf("First", "Second", "Third").map {
+                object : ArtifactMetadata.Descriptor {
+                    override val name: String
+                        get() = it
+                }
+            }
         )
 
         println(ex.message)

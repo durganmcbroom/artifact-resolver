@@ -94,6 +94,13 @@ publishing {
                 }
             }
 
+            withXml {
+                val repositoriesNode = asNode().appendNode("repositories")
+                val yakclientRepositoryNode = repositoriesNode.appendNode("repository")
+                yakclientRepositoryNode.appendNode("id", "extframework")
+                yakclientRepositoryNode.appendNode("url", "https://maven.extframework.dev/snapshots")
+            }
+
             licenses {
                 license {
                     name.set("MIT License")

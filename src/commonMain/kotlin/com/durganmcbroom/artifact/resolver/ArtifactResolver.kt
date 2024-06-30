@@ -38,7 +38,7 @@ public fun <
 
 public sealed class ArtifactResolutionException(message: String) : ArtifactException(message) {
     public data class CircularArtifacts(
-        val trace: Set<ArtifactMetadata.Descriptor>,
+        val trace: List<ArtifactMetadata.Descriptor>,
     ) : ArtifactResolutionException("Circular artifacts found! Trace was: '${
         trace.joinToString(separator = " -> ") { it.name }
     }'")
@@ -66,17 +66,18 @@ public open class ResolutionContext<R : ArtifactRequest<*>, S : ArtifactStub<R, 
             if (it is MetadataRequestException.MetadataNotFound) ArtifactException.ArtifactNotFound(
                 request.descriptor,
                 listOf(repositoryContext.artifactRepository.handler.settings.toString()),
+                listOf(),
                 it
             ) else it
         }.merge()
 
-        getAndResolve(artifact, HashMap(), setOf())().merge()
+        getAndResolve(artifact, HashMap(), listOf())().merge()
     }
 
     private fun getAndResolve(
         artifact: T,
         cache: MutableMap<R, Artifact<M>>,
-        trace: Set<ArtifactMetadata.Descriptor>
+        trace: List<ArtifactMetadata.Descriptor>
     ): Job<Artifact<M>> = job {
         val newChildren = artifact.children.mapNotNull { cache[it.request] } + artifact.children
             .filterNot { cache.contains(it.request) }
@@ -89,7 +90,7 @@ public open class ResolutionContext<R : ArtifactRequest<*>, S : ArtifactStub<R, 
                         if (it is MetadataRequestException.MetadataNotFound)
                             ArtifactException.ArtifactNotFound(
                                 child.request.descriptor,
-                                child.candidates.map { it.name }, it
+                                child.candidates.map { it.name }, trace + artifact.metadata.descriptor, it,
                             ) else it
                     }.merge()
             }.map { (it, req) ->
