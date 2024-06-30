@@ -22,4 +22,4 @@ jobs:
       - name: Grant permissions to Gradle
         run: chmod +x gradlew
       - name: Publish with Gradle
-        run: ./gradlew publishAll -Pmaven.user=${{ secrets.USER }} -Pmaven.key=${{ secrets.USER_KEY }} --no-daemon
+        run: ./gradlew publishAll -Pmaven.user='${{ secrets.USER }}' -Pmaven.key='${{ secrets.USER_KEY }}' --no-daemon
