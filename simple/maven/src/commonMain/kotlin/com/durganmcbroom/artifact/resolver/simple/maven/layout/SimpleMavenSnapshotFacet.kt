@@ -8,8 +8,7 @@ public class SimpleMavenSnapshotFacet(
     url: String,
     preferredAlgorithm: ResourceAlgorithm,
     requireResourceVerification: Boolean
-) :
-    SimpleMavenReleaseFacet(url, preferredAlgorithm, requireResourceVerification) {
+) : SimpleMavenReleaseFacet(url, preferredAlgorithm, requireResourceVerification) {
     override val type: String = "snapshot"
 
     override fun resourceOf(
@@ -28,7 +27,6 @@ public class SimpleMavenSnapshotFacet(
             )
 
         val versionedArtifact = versionedArtifact(groupId, artifactId, version)
-
 
         val s = "${artifactId}-${snapshotVersion}${classifier?.let { "-$it" } ?: ""}.$type"
 

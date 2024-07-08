@@ -32,7 +32,7 @@ public class SimpleMavenLocalLayout(
     }
 
     private fun baseArtifact(group: String, artifact: String): String =
-        "$path$pathSeparator${group.replace('.', '/')}$pathSeparator$artifact"
+        "${path.removeSuffix(pathSeparator)}$pathSeparator${group.replace('.', '/')}$pathSeparator$artifact"
 
     private fun versionedArtifact(g: String, a: String, v: String): String = "${baseArtifact(g, a)}$pathSeparator$v"
 }

@@ -60,13 +60,27 @@ class ResolutionTest {
 
     @Test
     fun `Test pretty artifact resolution`() {
-
         val context = SimpleMaven.createContext(
             SimpleMavenRepositorySettings.mavenCentral()
         )
 
         launch {
            val artifact =  context.getAndResolve(SimpleMavenArtifactRequest("org.jetbrains.kotlin:kotlin-stdlib:1.9.21"))().merge()
+
+            artifact.prettyPrint()
+        }
+    }
+
+    @Test
+    fun `Test artifact is found even with terminating slash in repository path`() {
+        val context = SimpleMaven.createContext(
+            SimpleMavenRepositorySettings.default(
+                url = "https://repo.maven.apache.org/maven2/"
+            )
+        )
+
+        launch {
+            val artifact =  context.getAndResolve(SimpleMavenArtifactRequest("org.jetbrains.kotlin:kotlin-stdlib:1.9.21"))().merge()
 
             artifact.prettyPrint()
         }

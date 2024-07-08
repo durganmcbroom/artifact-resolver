@@ -45,7 +45,7 @@ public open class SimpleMavenReleaseFacet(
         )
 
     protected fun baseArtifact(g: String, a: String): String =
-        "$url/${g.replace('.', '/')}/$a"
+        "${url.removeSuffix("/")}/${g.replace('.', '/')}/$a"
 
     protected fun versionedArtifact(g: String, a: String, v: String): String = "${baseArtifact(g, a)}/$v"
 }
