@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver
 
-public data class ArtifactReference<out M : ArtifactMetadata<*, *>, out S : ArtifactStub<*, *>>(
-    public val metadata: M,
-    public val children: List<S>
-)
+//public data class ArtifactReference<C: ArtifactMetadata.ChildInfo<*, *>, M: ArtifactMetadata<*, C>> (
+//    val metadata: M,
+//    val children: List<C>
+//)

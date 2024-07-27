@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRepository
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomProcessStage
 import com.durganmcbroom.jobs.Job
@@ -26,7 +26,7 @@ internal class PrimaryInterpolationStage :
     data class PrimaryInterpolationData(
         val pomData: PomData,
         val parents: List<PomData>,
-        val thisRepo: SimpleMavenMetadataHandler
+        val thisRepo: SimpleMavenArtifactRepository
     ) : PomProcessStage.StageData
 
 }

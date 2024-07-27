@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRepository
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenDefaultLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
@@ -81,6 +81,6 @@ internal class DependencyManagementInjectionStage :
 
     data class DependencyManagementInjectionData(
         val data: PomData,
-        val repo: SimpleMavenMetadataHandler
+        val repo: SimpleMavenArtifactRepository
     ) : PomProcessStage.StageData
 }

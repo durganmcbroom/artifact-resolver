@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRepository
 import com.durganmcbroom.artifact.resolver.simple.maven.plugin.SimpleMavenPlugin
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomProcessStage
@@ -26,6 +26,6 @@ internal class SecondaryInterpolationStage : PomProcessStage<PluginLoadingData, 
 
     data class SecondaryInterpolationData(
         val data: PomData,
-        val thisRepo: SimpleMavenMetadataHandler
+        val thisRepo: SimpleMavenArtifactRepository
     ) : PomProcessStage.StageData
 }

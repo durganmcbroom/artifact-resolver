@@ -2,10 +2,14 @@ package com.durganmcbroom.artifact.resolver.simple.maven
 
 import com.durganmcbroom.artifact.resolver.RepositoryFactory
 
-public object SimpleMaven :
-    RepositoryFactory<SimpleMavenRepositorySettings, SimpleMavenArtifactRequest, SimpleMavenArtifactStub, SimpleMavenArtifactReference, SimpleMavenArtifactRepository> {
+public object SimpleMaven : RepositoryFactory<
+        SimpleMavenRepositorySettings,
+        SimpleMavenArtifactRepository
+        > {
+    private val cache = HashMap<SimpleMavenRepositorySettings, SimpleMavenArtifactRepository>()
+
     override fun createNew(settings: SimpleMavenRepositorySettings): SimpleMavenArtifactRepository =
-        SimpleMavenArtifactRepository(
-            this, SimpleMavenMetadataHandler(settings), settings
-        )
+        cache[settings] ?: SimpleMavenArtifactRepository(
+            settings, this
+        ).also { cache[settings] = it }
 }
