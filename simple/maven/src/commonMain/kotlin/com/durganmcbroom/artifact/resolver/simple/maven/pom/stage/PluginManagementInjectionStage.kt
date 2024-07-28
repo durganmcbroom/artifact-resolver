@@ -25,7 +25,7 @@ internal class PluginManagementInjectionStage :
                 build.pluginManagement.plugins.find { p.groupId == it.groupId && p.artifactId == it.artifactId }
             }
 
-            // TODO Technically this injection is not correct as plugin management is only suppose to affect children and configurations are more complicated than completely overriding.
+            // TODO Technically this injection is not correct as plugin management is only suppose to affect parents and configurations are more complicated than completely overriding.
             PomPlugin(
                 p.groupId,
                 p.artifactId,

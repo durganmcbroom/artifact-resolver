@@ -59,8 +59,8 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.6")
-                implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.6")
+                implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.17.2")
+                implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4")
             }
         }

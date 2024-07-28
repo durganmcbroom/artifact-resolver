@@ -24,7 +24,7 @@ public open class SimpleMavenArtifactRepository(
             request.withNewDescriptor(it)
         }().merge()
 
-        val transitiveChildren = if (request.isTransitive) metadata.children else listOf()
+        val transitiveChildren = if (request.isTransitive) metadata.parents else listOf()
 
         val scopedChildren = transitiveChildren.filter { request.includeScopes.contains(it.scope) }
 

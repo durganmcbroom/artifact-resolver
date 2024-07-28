@@ -9,7 +9,7 @@ import com.durganmcbroom.jobs.mapException
 public fun <
         S : RepositorySettings,
         R : ArtifactRequest<*>,
-        M : ArtifactMetadata<*, ArtifactMetadata.ChildInfo<R, S>>>
+        M : ArtifactMetadata<*, ArtifactMetadata.ParentInfo<R, S>>>
         RepositoryFactory<S, ArtifactRepository<S, R, M>>.createContext(
     settings: S,
 ): ResolutionContext<S, R, M> = ResolutionContext(
@@ -27,7 +27,7 @@ public sealed class ArtifactResolutionException(message: String) : ArtifactExcep
 public open class ResolutionContext<
         S : RepositorySettings,
         R : ArtifactRequest<*>,
-        M : ArtifactMetadata<*, ArtifactMetadata.ChildInfo<R, S>>
+        M : ArtifactMetadata<*, ArtifactMetadata.ParentInfo<R, S>>
         >(
     public open val repository: ArtifactRepository<S, R, M>
 ) {
@@ -51,7 +51,7 @@ public open class ResolutionContext<
         cache: MutableMap<R, Artifact<M>>,
         trace: List<ArtifactMetadata.Descriptor>
     ): Job<Artifact<M>> = job {
-        val newChildren = metadata.children
+        val newChildren = metadata.parents
             .map { child ->
                 if (trace.contains(child.request.descriptor)) throw ArtifactResolutionException.CircularArtifacts(trace + metadata.descriptor)
                 cache[child.request] ?: run {

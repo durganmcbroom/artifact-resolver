@@ -2,5 +2,5 @@ package com.durganmcbroom.artifact.resolver
 
 public data class Artifact<T: ArtifactMetadata<*, *>>(
     public val metadata: T,
-    public val children: List<Artifact<T>>
+    public val parents: List<Artifact<T>>
 )

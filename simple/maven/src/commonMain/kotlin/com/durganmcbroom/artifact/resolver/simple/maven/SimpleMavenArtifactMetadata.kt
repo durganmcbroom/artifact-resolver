@@ -6,8 +6,8 @@ import com.durganmcbroom.resources.Resource
 public open class SimpleMavenArtifactMetadata(
     desc: SimpleMavenDescriptor,
     public val resource: Resource?,
-    children: List<SimpleMavenChildInfo>
-) : ArtifactMetadata<SimpleMavenDescriptor, SimpleMavenChildInfo>(desc, children)
+    parents: List<SimpleMavenChildInfo>
+) : ArtifactMetadata<SimpleMavenDescriptor, SimpleMavenChildInfo>(desc, parents)
 
 public data class SimpleMavenDescriptor(
     val group: String,
@@ -31,4 +31,4 @@ public data class SimpleMavenChildInfo(
     override val request: SimpleMavenArtifactRequest,
     override val candidates: List<SimpleMavenRepositorySettings>,
     val scope: String,
-) : ArtifactMetadata.ChildInfo<SimpleMavenArtifactRequest, SimpleMavenRepositorySettings>(request, candidates)
+) : ArtifactMetadata.ParentInfo<SimpleMavenArtifactRequest, SimpleMavenRepositorySettings>(request, candidates)
