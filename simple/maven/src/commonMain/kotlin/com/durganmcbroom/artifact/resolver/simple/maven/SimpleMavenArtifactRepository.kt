@@ -88,7 +88,7 @@ public open class SimpleMavenArtifactRepository(
             desc,
             handlePackaging(pom.packaging),
             dependencies.map {
-                SimpleMavenChildInfo(
+                SimpleMavenParentInfo(
                     requestBuilder(
                         SimpleMavenDescriptor(
                             it.groupId,

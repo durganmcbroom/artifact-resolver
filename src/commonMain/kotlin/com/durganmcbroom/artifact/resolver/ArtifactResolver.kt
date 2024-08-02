@@ -3,8 +3,13 @@
 package com.durganmcbroom.artifact.resolver
 
 import com.durganmcbroom.jobs.Job
+import com.durganmcbroom.jobs.async.AsyncJob
+import com.durganmcbroom.jobs.async.asyncJob
+import com.durganmcbroom.jobs.async.mapAsync
 import com.durganmcbroom.jobs.job
 import com.durganmcbroom.jobs.mapException
+import kotlinx.coroutines.*
+import java.util.concurrent.ConcurrentHashMap
 
 public fun <
         S : RepositorySettings,
@@ -31,9 +36,17 @@ public open class ResolutionContext<
         >(
     public open val repository: ArtifactRepository<S, R, M>
 ) {
-    public fun getAndResolve(
+    public open fun getAndResolve(
         request: R,
     ): Job<Artifact<M>> = job {
+        runBlocking(Dispatchers.IO) {
+            getAndResolveAsync(request)().merge()
+        }
+    }
+
+    public open fun getAndResolveAsync(
+        request: R,
+    ): AsyncJob<Artifact<M>> = asyncJob {
         val artifact = repository.get(request)().mapException {
             if (it is MetadataRequestException.MetadataNotFound) ArtifactException.ArtifactNotFound(
                 request.descriptor,
@@ -43,17 +56,20 @@ public open class ResolutionContext<
             ) else it
         }.merge()
 
-        getAndResolve(artifact, HashMap(), listOf())().merge()
+        getAndResolveAsync(artifact, ConcurrentHashMap(), listOf())().merge()
     }
 
-    private fun getAndResolve(
+    protected open fun getAndResolveAsync(
         metadata: M,
         cache: MutableMap<R, Artifact<M>>,
         trace: List<ArtifactMetadata.Descriptor>
-    ): Job<Artifact<M>> = job {
-        val newChildren = metadata.parents
-            .map { child ->
-                if (trace.contains(child.request.descriptor)) throw ArtifactResolutionException.CircularArtifacts(trace + metadata.descriptor)
+    ): AsyncJob<Artifact<M>> = asyncJob {
+        val newChildren  = metadata.parents
+            .mapAsync { child ->
+                if (trace.contains(child.request.descriptor)) throw ArtifactResolutionException.CircularArtifacts(
+                    trace + metadata.descriptor
+                )
+
                 cache[child.request] ?: run {
                     val exceptions = mutableListOf<Throwable>()
 
@@ -76,7 +92,7 @@ public open class ResolutionContext<
                         )
                     }
 
-                    getAndResolve(childMetadata, cache, trace + child.request.descriptor)().merge().also {
+                    getAndResolveAsync(childMetadata, cache, trace + child.request.descriptor)().merge().also {
                         cache[child.request] = it
                     }
                 }
@@ -84,7 +100,7 @@ public open class ResolutionContext<
 
         Artifact(
             metadata,
-            newChildren,
+            newChildren.awaitAll()
         )
     }
 }

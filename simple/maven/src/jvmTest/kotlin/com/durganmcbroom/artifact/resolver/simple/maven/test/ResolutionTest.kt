@@ -68,6 +68,20 @@ class ResolutionTest {
     }
 
     @Test
+    fun `Test adsf`() {
+        val context = SimpleMaven.createContext(
+            SimpleMavenRepositorySettings.default(url = "https://maven.extframework.dev/snapshots", requireResourceVerification = false)
+        )
+
+        launch {
+            val artifact =
+                context.getAndResolve(SimpleMavenArtifactRequest("dev.extframework.minecraft:minecraft-provider-def:1.0-SNAPSHOT"))().merge()
+
+            artifact.prettyPrint()
+        }
+    }
+
+    @Test
     fun `Test artifact is found even with terminating slash in repository path`() {
         val context = SimpleMaven.createContext(
             SimpleMavenRepositorySettings.default(

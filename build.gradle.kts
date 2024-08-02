@@ -61,9 +61,10 @@ allprojects {
     apply(plugin = "org.jetbrains.dokka")
 
     group = "com.durganmcbroom"
-    version = "1.2-SNAPSHOT"
+    version = "1.2.1-SNAPSHOT"
 
     repositories {
+        mavenLocal()
         mavenCentral()
         maven {
             url = uri("https://maven.extframework.dev/snapshots")
@@ -82,7 +83,7 @@ allprojects {
         sourceSets {
             val commonMain by getting {
                 dependencies {
-                    api("com.durganmcbroom:jobs:1.2-SNAPSHOT")
+                    api("com.durganmcbroom:jobs:1.3-SNAPSHOT")
                     implementation("com.durganmcbroom:resource-api:1.1.3-SNAPSHOT")
                 }
             }

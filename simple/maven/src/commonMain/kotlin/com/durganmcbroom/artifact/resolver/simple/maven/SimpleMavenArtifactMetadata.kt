@@ -6,8 +6,8 @@ import com.durganmcbroom.resources.Resource
 public open class SimpleMavenArtifactMetadata(
     desc: SimpleMavenDescriptor,
     public val resource: Resource?,
-    parents: List<SimpleMavenChildInfo>
-) : ArtifactMetadata<SimpleMavenDescriptor, SimpleMavenChildInfo>(desc, parents)
+    parents: List<SimpleMavenParentInfo>
+) : ArtifactMetadata<SimpleMavenDescriptor, SimpleMavenParentInfo>(desc, parents)
 
 public data class SimpleMavenDescriptor(
     val group: String,
@@ -27,7 +27,7 @@ public data class SimpleMavenDescriptor(
     override fun toString(): String = "$group:$artifact:$version${classifier?.let { ":$it" } ?: ""}"
 }
 
-public data class SimpleMavenChildInfo(
+public data class SimpleMavenParentInfo(
     override val request: SimpleMavenArtifactRequest,
     override val candidates: List<SimpleMavenRepositorySettings>,
     val scope: String,
