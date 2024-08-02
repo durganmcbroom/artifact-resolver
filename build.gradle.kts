@@ -64,7 +64,6 @@ allprojects {
     version = "1.2.1-SNAPSHOT"
 
     repositories {
-        mavenLocal()
         mavenCentral()
         maven {
             url = uri("https://maven.extframework.dev/snapshots")
