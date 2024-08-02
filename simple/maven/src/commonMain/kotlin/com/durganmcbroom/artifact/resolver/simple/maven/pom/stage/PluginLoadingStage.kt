@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRepository
 import com.durganmcbroom.artifact.resolver.simple.maven.plugin.SimpleMavenPlugin
 import com.durganmcbroom.artifact.resolver.simple.maven.plugin.SimplePluginConfiguration
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
@@ -42,7 +42,7 @@ internal class PluginLoadingStage :
 
     data class PluginLoadingData(
         val data: PomData,
-        val thisRepo: SimpleMavenMetadataHandler,
+        val thisRepo: SimpleMavenArtifactRepository,
         val plugins: List<SimpleMavenPlugin>,
         val parents: List<PomData>
     ) : PomProcessStage.StageData

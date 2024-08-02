@@ -1,16 +1,13 @@
 package com.durganmcbroom.artifact.resolver.simple.maven
 
 import com.durganmcbroom.artifact.resolver.ArtifactMetadata
-import com.durganmcbroom.artifact.resolver.ArtifactStub
 import com.durganmcbroom.resources.Resource
-
-public typealias SimpleMavenArtifactStub = ArtifactStub<SimpleMavenArtifactRequest, SimpleMavenRepositoryStub>
 
 public open class SimpleMavenArtifactMetadata(
     desc: SimpleMavenDescriptor,
-    resource: Resource?,
-    children: List<SimpleMavenChildInfo>
-) : ArtifactMetadata<SimpleMavenDescriptor, SimpleMavenChildInfo>(desc, resource, children)
+    public val resource: Resource?,
+    parents: List<SimpleMavenParentInfo>
+) : ArtifactMetadata<SimpleMavenDescriptor, SimpleMavenParentInfo>(desc, parents)
 
 public data class SimpleMavenDescriptor(
     val group: String,
@@ -30,8 +27,8 @@ public data class SimpleMavenDescriptor(
     override fun toString(): String = "$group:$artifact:$version${classifier?.let { ":$it" } ?: ""}"
 }
 
-public data class SimpleMavenChildInfo(
-    override val descriptor: SimpleMavenDescriptor,
-    override val candidates: List<SimpleMavenRepositoryStub>,
+public data class SimpleMavenParentInfo(
+    override val request: SimpleMavenArtifactRequest,
+    override val candidates: List<SimpleMavenRepositorySettings>,
     val scope: String,
-) : ArtifactMetadata.ChildInfo<SimpleMavenDescriptor, SimpleMavenRepositoryStub>(descriptor, candidates)
+) : ArtifactMetadata.ParentInfo<SimpleMavenArtifactRequest, SimpleMavenRepositorySettings>(request, candidates)

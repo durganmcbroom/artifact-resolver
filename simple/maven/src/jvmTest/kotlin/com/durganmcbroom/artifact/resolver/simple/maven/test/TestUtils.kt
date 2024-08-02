@@ -6,22 +6,22 @@ import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenDescriptor
 import java.lang.IllegalArgumentException
 
 @JvmOverloads
-fun Artifact<*>.prettyPrint(
+fun <T: ArtifactMetadata<*, *>> Artifact<T>.prettyPrint(
     indentForDepth: String = "   ",
     acceptStubs: Boolean = true,
-    printer: (Artifact<*>) -> String = { it.metadata.descriptor.toString() }
+    printer: (Artifact<T>) -> String = { it.metadata.descriptor.toString() }
 ) = prettyPrint(0, indentForDepth, acceptStubs, printer)
 
-private fun Artifact<*>.prettyPrint(
+private fun <T:ArtifactMetadata<*, *>> Artifact<T>.prettyPrint(
     depth: Int,
     indentForDepth: String,
     acceptStubs: Boolean = true,
-    printer: (Artifact<*>) -> String
+    printer: (Artifact<T>) -> String
 ) {
     val indent = (0 until depth).fold("") { acc, _ -> "$acc$indentForDepth" }
 
     println("$indent${printer(this)}")
-    children.forEach {
+    parents.forEach {
         it.prettyPrint(depth + 1, indentForDepth, acceptStubs, printer)
     }
 }
@@ -48,7 +48,6 @@ fun artifactTree(descriptor: String, configure: ArtifactTreeBuilder.() -> Unit):
         return Artifact(
             ArtifactMetadata(
                 SimpleMavenDescriptor.parseDescription(this.descriptor)!!,
-                null,
                 listOf()
             ),
             children.map { it.toArtifact() } as List<Artifact<ArtifactMetadata<*, *>>>
@@ -62,8 +61,8 @@ fun Artifact<*>.checkDescriptorsEquals(
     other: Artifact<*>,
 ) {
     if(this.metadata.descriptor != other.metadata.descriptor) throw IllegalArgumentException("Artifact: '${this.metadata.descriptor}' should be '${other.metadata.descriptor}'")
-    check(other.children.size == this.children.size) {"Differing number of children at artifact: '${this.metadata.descriptor}"}
-    children.zip(other.children).forEach {
+    check(other.parents.size == this.parents.size) {"Differing number of children at artifact: '${this.metadata.descriptor}"}
+    parents.zip(other.parents).forEach {
         it.first.checkDescriptorsEquals(it.second)
     }
 }

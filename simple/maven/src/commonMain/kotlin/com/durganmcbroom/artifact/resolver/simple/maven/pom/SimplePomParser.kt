@@ -2,7 +2,7 @@
 
 package com.durganmcbroom.artifact.resolver.simple.maven.pom
 
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRepository
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.stage.*
 import com.durganmcbroom.jobs.*
 import com.durganmcbroom.resources.Resource
@@ -15,10 +15,10 @@ private val pluginLoadingStage = PluginLoadingStage()
 private val secondaryInterpolationStage = SecondaryInterpolationStage()
 private val dependencyManagementInjector = DependencyManagementInjectionStage()
 
-public fun SimpleMavenMetadataHandler.parsePom(resource: Resource): Job<PomData> =
+public fun SimpleMavenArtifactRepository.parsePom(resource: Resource): Job<PomData> =
     parseData(resource).map { parsePom(it, resource.location)().merge() }
 
-public fun SimpleMavenMetadataHandler.parsePom(data: PomData, location: String): Job<PomData> =
+public fun SimpleMavenArtifactRepository.parsePom(data: PomData, location: String): Job<PomData> =
     job(JobName("Assemble POM data for POM: '${data.groupId}:${data.artifactId}:${data.version}'")) {
         runCatching {
             WrappedPomData(data, this@parsePom)

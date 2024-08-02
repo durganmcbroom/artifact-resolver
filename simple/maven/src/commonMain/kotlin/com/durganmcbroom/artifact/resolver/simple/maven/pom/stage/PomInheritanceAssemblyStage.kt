@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRepository
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
 import com.durganmcbroom.jobs.Job
 import com.durganmcbroom.jobs.SuccessfulJob
@@ -60,6 +60,6 @@ internal class PomInheritanceAssemblyStage :
     data class AssembledPomData(
         val pomData: PomData,
         val parents: List<PomData>,
-        val thisRepo: SimpleMavenMetadataHandler
+        val thisRepo: SimpleMavenArtifactRepository
     ) : PomProcessStage.StageData
 }

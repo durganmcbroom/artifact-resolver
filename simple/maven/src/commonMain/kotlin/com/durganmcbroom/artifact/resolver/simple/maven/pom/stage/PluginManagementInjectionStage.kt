@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRepository
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomBuild
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomPlugin
@@ -25,7 +25,7 @@ internal class PluginManagementInjectionStage :
                 build.pluginManagement.plugins.find { p.groupId == it.groupId && p.artifactId == it.artifactId }
             }
 
-            // TODO Technically this injection is not correct as plugin management is only suppose to affect children and configurations are more complicated than completely overriding.
+            // TODO Technically this injection is not correct as plugin management is only suppose to affect parents and configurations are more complicated than completely overriding.
             PomPlugin(
                 p.groupId,
                 p.artifactId,
@@ -49,6 +49,6 @@ internal class PluginManagementInjectionStage :
     data class PluginManagementInjectionData(
         val pomData: PomData,
         val parents: List<PomData>,
-        val thisRepo: SimpleMavenMetadataHandler
+        val thisRepo: SimpleMavenArtifactRepository
     ) : PomProcessStage.StageData
 }

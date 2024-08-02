@@ -3,38 +3,23 @@
 package com.durganmcbroom.artifact.resolver
 
 import com.durganmcbroom.jobs.Job
+import com.durganmcbroom.jobs.async.AsyncJob
+import com.durganmcbroom.jobs.async.asyncJob
+import com.durganmcbroom.jobs.async.mapAsync
 import com.durganmcbroom.jobs.job
 import com.durganmcbroom.jobs.mapException
-
-public interface ArtifactRepositoryContext<R : ArtifactRequest<*>, S : ArtifactStub<R, *>, out A : ArtifactReference<*, S>> {
-    public val artifactRepository: ArtifactRepository<R, S, A>
-}
-
-public interface StubResolverContext<T : ArtifactStub<*, *>, out A : ArtifactReference<*, T>> {
-    public val stubResolver: ArtifactStubResolver<*, T, A>
-}
-
-public interface ArtifactComposerContext {
-    public val artifactComposer: ArtifactComposer
-}
+import kotlinx.coroutines.*
+import java.util.concurrent.ConcurrentHashMap
 
 public fun <
         S : RepositorySettings,
-        Req : ArtifactRequest<*>,
-        Stub : ArtifactStub<Req, *>,
-        M : ArtifactMetadata<*, *>,
-        Ref : ArtifactReference<M, Stub>,
-        R : ArtifactRepository<Req, Stub, Ref>> RepositoryFactory<S, Req, Stub, Ref, R>.createContext(
-    settings: S
-): ResolutionContext<Req, Stub, M, Ref> {
-    val repo: R = createNew(settings)
-    val resolver = repo.stubResolver
-    val composer: ArtifactComposer = artifactComposer
-
-    return ResolutionContext(
-        repo, resolver, composer
-    )
-}
+        R : ArtifactRequest<*>,
+        M : ArtifactMetadata<*, ArtifactMetadata.ParentInfo<R, S>>>
+        RepositoryFactory<S, ArtifactRepository<S, R, M>>.createContext(
+    settings: S,
+): ResolutionContext<S, R, M> = ResolutionContext(
+    createNew(settings)
+)
 
 public sealed class ArtifactResolutionException(message: String) : ArtifactException(message) {
     public data class CircularArtifacts(
@@ -44,63 +29,78 @@ public sealed class ArtifactResolutionException(message: String) : ArtifactExcep
     }'")
 }
 
-public open class ResolutionContext<R : ArtifactRequest<*>, S : ArtifactStub<R, *>, M : ArtifactMetadata<*, *>, T : ArtifactReference<M, S>>(
-    public val repositoryContext: ArtifactRepositoryContext<R, S, T>,
-    public val resolverContext: StubResolverContext<S, T>,
-    public val composerContext: ArtifactComposerContext,
+public open class ResolutionContext<
+        S : RepositorySettings,
+        R : ArtifactRequest<*>,
+        M : ArtifactMetadata<*, ArtifactMetadata.ParentInfo<R, S>>
+        >(
+    public open val repository: ArtifactRepository<S, R, M>
 ) {
-    public constructor(
-        artifactRepository: ArtifactRepository<R, S, T>,
-        stubResolver: ArtifactStubResolver<*, S, T>,
-        artifactComposer: ArtifactComposer
-    ) : this(object : ArtifactRepositoryContext<R, S, T> {
-        override val artifactRepository: ArtifactRepository<R, S, T> = artifactRepository
-    }, object : StubResolverContext<S, T> {
-        override val stubResolver: ArtifactStubResolver<*, S, T> = stubResolver
-    }, object : ArtifactComposerContext {
-        override val artifactComposer: ArtifactComposer = artifactComposer
-    })
+    public open fun getAndResolve(
+        request: R,
+    ): Job<Artifact<M>> = job {
+        runBlocking(Dispatchers.IO) {
+            getAndResolveAsync(request)().merge()
+        }
+    }
 
-    public fun getAndResolve(request: R): Job<Artifact<M>> = job {
-        val artifact = repositoryContext.artifactRepository.get(request)().mapException {
+    public open fun getAndResolveAsync(
+        request: R,
+    ): AsyncJob<Artifact<M>> = asyncJob {
+        val artifact = repository.get(request)().mapException {
             if (it is MetadataRequestException.MetadataNotFound) ArtifactException.ArtifactNotFound(
                 request.descriptor,
-                listOf(repositoryContext.artifactRepository.handler.settings.toString()),
+                listOf(repository.settings),
                 listOf(),
                 it
             ) else it
         }.merge()
 
-        getAndResolve(artifact, HashMap(), listOf())().merge()
+        getAndResolveAsync(artifact, ConcurrentHashMap(), listOf())().merge()
     }
 
-    private fun getAndResolve(
-        artifact: T,
+    protected open fun getAndResolveAsync(
+        metadata: M,
         cache: MutableMap<R, Artifact<M>>,
         trace: List<ArtifactMetadata.Descriptor>
-    ): Job<Artifact<M>> = job {
-        val newChildren = artifact.children.mapNotNull { cache[it.request] } + artifact.children
-            .filterNot { cache.contains(it.request) }
-            .map { child ->
-                if (trace.contains(child.request.descriptor)) throw ArtifactResolutionException.CircularArtifacts(trace + artifact.metadata.descriptor)
+    ): AsyncJob<Artifact<M>> = asyncJob {
+        val newChildren  = metadata.parents
+            .mapAsync { child ->
+                if (trace.contains(child.request.descriptor)) throw ArtifactResolutionException.CircularArtifacts(
+                    trace + metadata.descriptor
+                )
 
-                resolverContext.stubResolver.resolve(child)()
-                    .map { it to child.request }
-                    .mapException {
-                        if (it is MetadataRequestException.MetadataNotFound)
-                            ArtifactException.ArtifactNotFound(
-                                child.request.descriptor,
-                                child.candidates.map { it.name }, trace + artifact.metadata.descriptor, it,
-                            ) else it
-                    }.merge()
-            }.map { (it, req) ->
-                getAndResolve(
-                    it,
-                    cache,
-                    trace + artifact.metadata.descriptor
-                )().merge().also { a -> cache[req] = a }
+                cache[child.request] ?: run {
+                    val exceptions = mutableListOf<Throwable>()
+
+                    val childMetadata = child.candidates.firstNotNullOfOrNull { candidate ->
+                        val childMetadata = repository.factory.createNew(candidate).get(child.request)()
+
+                        childMetadata.getOrElse {
+                            exceptions.add(it)
+                            null
+                        }
+                    } ?: if (exceptions.all { it is MetadataRequestException.MetadataNotFound }) {
+                        throw ArtifactException.ArtifactNotFound(
+                            child.request.descriptor,
+                            child.candidates,
+                            trace
+                        )
+                    } else {
+                        throw IterableException(
+                            "Failed to resolve '${child.request.descriptor}'", exceptions
+                        )
+                    }
+
+                    getAndResolveAsync(childMetadata, cache, trace + child.request.descriptor)().merge().also {
+                        cache[child.request] = it
+                    }
+                }
             }
 
-        composerContext.artifactComposer.compose(artifact, newChildren)
+        Artifact(
+            metadata,
+            newChildren.awaitAll()
+        )
     }
 }

@@ -5,14 +5,20 @@ import com.durganmcbroom.jobs.*
 import com.durganmcbroom.resources.*
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
+import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.io.FileNotFoundException
 
-private val mapper = XmlMapper().registerModule(KotlinModule())
-    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+internal val mapper =
+    XmlMapper.builder()
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+        .build()
+        .registerModule(KotlinModule.Builder().build())
+
 
 public actual val SUPER_POM: PomData = parseData(
     object : Resource {

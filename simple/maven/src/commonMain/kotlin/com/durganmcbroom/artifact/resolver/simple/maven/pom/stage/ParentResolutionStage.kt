@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenMetadataHandler
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRepository
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenCentral
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenDefaultLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
@@ -67,7 +67,7 @@ internal class ParentResolutionStage : PomProcessStage<WrappedPomData, ParentRes
 
     data class ParentResolutionData(
         val pomData: PomData,
-        val thisRepo: SimpleMavenMetadataHandler,
+        val thisRepo: SimpleMavenArtifactRepository,
         val parents: List<PomData>
     ) : PomProcessStage.StageData
 }

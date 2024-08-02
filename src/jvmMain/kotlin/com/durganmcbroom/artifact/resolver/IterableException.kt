@@ -1,6 +1,5 @@
 package com.durganmcbroom.artifact.resolver
 
-import java.io.PrintStream
 import java.util.*
 
 private fun followPath(top: Throwable): List<Throwable> =

@@ -1,31 +1,26 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.test
 
+import com.durganmcbroom.artifact.resolver.Artifact
 import com.durganmcbroom.artifact.resolver.createContext
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMaven
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactMetadata
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRequest
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositorySettings
-import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenResolutionContext
 import com.durganmcbroom.jobs.launch
 import com.durganmcbroom.resources.ResourceAlgorithm
-import com.durganmcbroom.resources.useConnection
-import java.net.URL
 import kotlin.test.Test
 
 class ResolutionTest {
     @Test
     fun `Test basic artifact resolution`() {
-        val repository = SimpleMaven.createNew(
+        val repository = SimpleMaven.createContext(
             SimpleMavenRepositorySettings.mavenCentral(
                 preferredHash = ResourceAlgorithm.SHA1
             )
         )
-        System.setProperty("http.keepAlive", "false");
         launch {
-           val artifact = SimpleMavenResolutionContext(
-                repository,
-                repository.stubResolver,
-                SimpleMaven.artifactComposer
-            ).getAndResolve(SimpleMavenArtifactRequest("org.springframework:spring-context:5.3.22"))().merge()
+            val artifact =
+                repository.getAndResolve(SimpleMavenArtifactRequest("org.springframework:spring-context:5.3.22"))().merge()
 
             artifact.prettyPrint()
 
@@ -65,7 +60,22 @@ class ResolutionTest {
         )
 
         launch {
-           val artifact =  context.getAndResolve(SimpleMavenArtifactRequest("org.jetbrains.kotlin:kotlin-stdlib:1.9.21"))().merge()
+            val artifact =
+                context.getAndResolve(SimpleMavenArtifactRequest("org.jetbrains.kotlin:kotlin-stdlib:1.9.21"))().merge()
+
+            artifact.prettyPrint()
+        }
+    }
+
+    @Test
+    fun `Test adsf`() {
+        val context = SimpleMaven.createContext(
+            SimpleMavenRepositorySettings.default(url = "https://maven.extframework.dev/snapshots", requireResourceVerification = false)
+        )
+
+        launch {
+            val artifact =
+                context.getAndResolve(SimpleMavenArtifactRequest("dev.extframework.minecraft:minecraft-provider-def:1.0-SNAPSHOT"))().merge()
 
             artifact.prettyPrint()
         }
@@ -80,7 +90,8 @@ class ResolutionTest {
         )
 
         launch {
-            val artifact =  context.getAndResolve(SimpleMavenArtifactRequest("org.jetbrains.kotlin:kotlin-stdlib:1.9.21"))().merge()
+            val artifact =
+                context.getAndResolve(SimpleMavenArtifactRequest("org.jetbrains.kotlin:kotlin-stdlib:1.9.21"))().merge()
 
             artifact.prettyPrint()
         }
@@ -94,8 +105,10 @@ class ResolutionTest {
                 preferredHash = ResourceAlgorithm.SHA1
             )
         )
+
         launch {
-            val artifact = context.getAndResolve(SimpleMavenArtifactRequest("net.minecrell:ServerListPlus:3.5.0-SNAPSHOT"))().merge()
+            val artifact: Artifact<SimpleMavenArtifactMetadata> =
+                context.getAndResolve(SimpleMavenArtifactRequest("net.minecrell:ServerListPlus:3.5.0-SNAPSHOT"))().merge()
 
             artifact.prettyPrint {
                 it.metadata.descriptor.toString() + " @ " + (it.metadata.resource?.location ?: "POM")
