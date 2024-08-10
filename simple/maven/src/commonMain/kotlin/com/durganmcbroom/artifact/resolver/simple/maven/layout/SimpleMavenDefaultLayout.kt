@@ -6,16 +6,16 @@ import com.durganmcbroom.resources.Resource
 import com.durganmcbroom.resources.ResourceAlgorithm
 
 public open class SimpleMavenDefaultLayout(
-    public val url: String,
+    final override val location: String,
     preferredAlgorithm: ResourceAlgorithm,
     public val releasesEnabled: Boolean,
     public val snapshotsEnabled: Boolean,
     requireResourceVerification: Boolean
 ) : SimpleMavenRepositoryLayout {
-    override val name: String = "default@$url"
+    override val name: String = "default@$location"
 
-    private val releaseFacet = SimpleMavenReleaseFacet(url, preferredAlgorithm, requireResourceVerification)
-    private val snapshotFacet = SimpleMavenSnapshotFacet(url, preferredAlgorithm, requireResourceVerification)
+    private val releaseFacet = SimpleMavenReleaseFacet(location, preferredAlgorithm, requireResourceVerification)
+    private val snapshotFacet = SimpleMavenSnapshotFacet(location, preferredAlgorithm, requireResourceVerification)
 
     override fun resourceOf(
         groupId: String,

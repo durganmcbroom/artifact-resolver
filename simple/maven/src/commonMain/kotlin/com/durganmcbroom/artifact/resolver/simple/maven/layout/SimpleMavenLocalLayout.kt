@@ -1,7 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
 import com.durganmcbroom.jobs.*
-import com.durganmcbroom.resources.LocalResource
 import com.durganmcbroom.resources.Resource
 import com.durganmcbroom.resources.toResource
 import java.nio.file.Path
@@ -10,8 +9,8 @@ public expect val mavenLocal: String
 
 public expect val pathSeparator: String
 
-public class SimpleMavenLocalLayout(
-    private val path: String = mavenLocal,
+public open class SimpleMavenLocalLayout(
+    final override val location: String = mavenLocal,
 ) : SimpleMavenRepositoryLayout {
     override val name: String = "local"
 
@@ -32,7 +31,7 @@ public class SimpleMavenLocalLayout(
     }
 
     private fun baseArtifact(group: String, artifact: String): String =
-        "${path.removeSuffix(pathSeparator)}$pathSeparator${group.replace('.', '/')}$pathSeparator$artifact"
+        "${location.removeSuffix(pathSeparator)}$pathSeparator${group.replace('.', '/')}$pathSeparator$artifact"
 
     private fun versionedArtifact(g: String, a: String, v: String): String = "${baseArtifact(g, a)}$pathSeparator$v"
 }

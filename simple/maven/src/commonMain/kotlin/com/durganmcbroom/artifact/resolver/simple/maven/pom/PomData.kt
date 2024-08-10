@@ -63,7 +63,7 @@ public data class PomRepository(
             return PomRepository(
                 null,
                 null,
-                layout.url,
+                layout.location,
                 "default",
                 PomRepositoryPolicy(
                     layout.releasesEnabled
