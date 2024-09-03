@@ -70,12 +70,12 @@ class ResolutionTest {
     @Test
     fun `Test adsf`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.default(url = "https://maven.extframework.dev/snapshots", requireResourceVerification = false)
+            SimpleMavenRepositorySettings.default(url = "https://maven.extframework.dev/snapshots", requireResourceVerification = true)
         )
 
         launch {
             val artifact =
-                context.getAndResolve(SimpleMavenArtifactRequest("dev.extframework.minecraft:minecraft-provider-def:1.0-SNAPSHOT"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("dev.extframework.minecraft:minecraft-provider-def:2.0.4-SNAPSHOT"))().merge()
 
             artifact.prettyPrint()
         }

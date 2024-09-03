@@ -61,46 +61,46 @@ public open class ResolutionContext<
 
     protected open fun getAndResolveAsync(
         metadata: M,
-        cache: MutableMap<R, Artifact<M>>,
+        cache: MutableMap<R, Deferred<Artifact<M>>>,
         trace: List<ArtifactMetadata.Descriptor>
     ): AsyncJob<Artifact<M>> = asyncJob {
-        val newChildren  = metadata.parents
-            .mapAsync { child ->
-                if (trace.contains(child.request.descriptor)) throw ArtifactResolutionException.CircularArtifacts(
-                    trace + metadata.descriptor
-                )
+        coroutineScope {
+            val newChildren = metadata.parents
+                .map { child ->
+                    if (trace.contains(child.request.descriptor)) throw ArtifactResolutionException.CircularArtifacts(
+                        trace + metadata.descriptor
+                    )
 
-                cache[child.request] ?: run {
-                    val exceptions = mutableListOf<Throwable>()
+                    cache[child.request] ?: async {
+                        val exceptions = mutableListOf<Throwable>()
 
-                    val childMetadata = child.candidates.firstNotNullOfOrNull { candidate ->
-                        val childMetadata = repository.factory.createNew(candidate).get(child.request)()
+                        val childMetadata = child.candidates.firstNotNullOfOrNull { candidate ->
+                            val childMetadata = repository.factory.createNew(candidate).get(child.request)()
 
-                        childMetadata.getOrElse {
-                            exceptions.add(it)
-                            null
-                        }
-                    } ?: if (exceptions.all { it is MetadataRequestException.MetadataNotFound }) {
-                        throw ArtifactException.ArtifactNotFound(
+                            childMetadata.getOrElse {
+                                exceptions.add(it)
+                                null
+                            }
+                        } ?: exceptions
+                            .filter { it !is MetadataRequestException.MetadataNotFound }
+                            .takeUnless { it.isEmpty() }
+                            ?.let { throw it.first() }
+                        ?: throw ArtifactException.ArtifactNotFound(
                             child.request.descriptor,
                             child.candidates,
                             trace
                         )
-                    } else {
-                        throw IterableException(
-                            "Failed to resolve '${child.request.descriptor}'", exceptions
-                        )
-                    }
 
-                    getAndResolveAsync(childMetadata, cache, trace + child.request.descriptor)().merge().also {
+                        getAndResolveAsync(childMetadata, cache, trace + child.request.descriptor)().merge()
+                    }.also {
                         cache[child.request] = it
                     }
                 }
-            }
 
-        Artifact(
-            metadata,
-            newChildren.awaitAll()
-        )
+            Artifact(
+                metadata,
+                newChildren.awaitAll()
+            )
+        }
     }
 }

@@ -1,12 +1,12 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.mapper
-import com.durganmcbroom.jobs.*
+import com.durganmcbroom.jobs.Job
+import com.durganmcbroom.jobs.JobName
+import com.durganmcbroom.jobs.job
+import com.durganmcbroom.jobs.mapException
 import com.durganmcbroom.resources.Resource
 import com.durganmcbroom.resources.openStream
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 
 internal actual fun parseSnapshotMetadata(

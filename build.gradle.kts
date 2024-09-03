@@ -5,6 +5,7 @@ plugins {
 }
 
 
+
 kotlin {
     explicitApi()
 
@@ -61,7 +62,7 @@ allprojects {
     apply(plugin = "org.jetbrains.dokka")
 
     group = "com.durganmcbroom"
-    version = "1.2.2-SNAPSHOT"
+    version = "1.2.3-SNAPSHOT"
 
     repositories {
         mavenCentral()
@@ -83,7 +84,7 @@ allprojects {
             val commonMain by getting {
                 dependencies {
                     api("com.durganmcbroom:jobs:1.3-SNAPSHOT")
-                    implementation("com.durganmcbroom:resource-api:1.1.3-SNAPSHOT")
+                    implementation("com.durganmcbroom:resource-api:1.1.6-SNAPSHOT")
                 }
             }
         }

@@ -12,27 +12,28 @@ internal actual fun verifiedResourceOf(
     algorithm: ResourceAlgorithm,
     requireVerification: Boolean
 ): Job<Resource> = job(JobName("Verify resource: '$location'")) {
-    URL(checksumLocation).useConnection { checksumConnection ->
-        val unverifiedResource = URL(location).toResource()
+    val unverifiedResource = URL(location).toResource()
 
-        if (checksumConnection.responseCode != 200) {
-            return@useConnection if (!requireVerification) unverifiedResource
-            else throw ResourceRetrievalException.ChecksumFileNotFound(
-                location,
-                algorithm.name,
-            )
-        }
+    val checksum = result {  URL(checksumLocation).toResource() }
 
-        val checkString = String(checksumConnection.inputStream.readAllBytes())
-            .trim()
-            .let { s -> s.subSequence(0 until s.indexOf(' ').let { (if (it == -1) s.length else it) }) }
-
-        val check = HexFormat.of().parseHex(checkString)
-
-        VerifiedResource(
-            unverifiedResource,
-            algorithm,
-            check
+    if (checksum.isFailure) {
+        return@job if (!requireVerification) unverifiedResource
+        else throw ResourceRetrievalException.ChecksumFileNotFound(
+            location,
+            algorithm.name,
+            checksum.exceptionOrNull()!!
         )
-    }.use { it.value }
+    }
+
+    val checkString = String(checksum.merge().openStream().readAllBytes())
+        .trim()
+        .let { s -> s.subSequence(0 until s.indexOf(' ').let { (if (it == -1) s.length else it) }) }
+
+    val check = HexFormat.of().parseHex(checkString)
+
+    VerifiedResource(
+        unverifiedResource,
+        algorithm,
+        check
+    )
 }
