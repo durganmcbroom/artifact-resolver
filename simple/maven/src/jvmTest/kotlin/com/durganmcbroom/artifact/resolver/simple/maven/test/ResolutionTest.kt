@@ -61,21 +61,7 @@ class ResolutionTest {
 
         launch {
             val artifact =
-                context.getAndResolve(SimpleMavenArtifactRequest("org.jetbrains.kotlin:kotlin-stdlib:1.9.21"))().merge()
-
-            artifact.prettyPrint()
-        }
-    }
-
-    @Test
-    fun `Test adsf`() {
-        val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.default(url = "https://maven.extframework.dev/snapshots", requireResourceVerification = true)
-        )
-
-        launch {
-            val artifact =
-                context.getAndResolve(SimpleMavenArtifactRequest("dev.extframework.minecraft:minecraft-provider-def:2.0.4-SNAPSHOT"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("com.sparkjava:spark-core:2.9.4"))().merge()
 
             artifact.prettyPrint()
         }

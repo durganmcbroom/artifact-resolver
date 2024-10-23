@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.dokka") version "1.9.10"
 }
 
+version = "1.2.3-SNAPSHOT"
 
 
 kotlin {
@@ -62,7 +63,6 @@ allprojects {
     apply(plugin = "org.jetbrains.dokka")
 
     group = "com.durganmcbroom"
-    version = "1.2.3-SNAPSHOT"
 
     repositories {
         mavenCentral()

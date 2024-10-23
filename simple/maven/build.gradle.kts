@@ -2,6 +2,8 @@ plugins {
     kotlin("multiplatform")
 }
 
+version = "1.2.4-SNAPSHOT"
+
 kotlin {
     explicitApi()
 

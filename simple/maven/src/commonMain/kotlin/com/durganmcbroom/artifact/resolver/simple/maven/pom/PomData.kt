@@ -81,18 +81,18 @@ private const val INTERVAL_MATCH = "interval:"
 
 public data class PomRepositoryPolicy(
     val enabled: Boolean = true,
-    private val _updatePolicy: String = DEFAULT_UPDATE_POLICY,
+    private val updatePolicy: String = DEFAULT_UPDATE_POLICY,
     val checksumPolicy: PomRepositoryChecksumPolicy = PomRepositoryChecksumPolicy.WARN,
 ) {
-    val updatePolicy: PomRepositoryUpdatePolicy = when {
-        _updatePolicy == "always" -> Always
-        _updatePolicy == DEFAULT_UPDATE_POLICY -> Daily
-        _updatePolicy.startsWith(INTERVAL_MATCH) -> OnInterval(
-            _updatePolicy.removePrefix(
+    val pomUpdatePolicy: PomRepositoryUpdatePolicy = when {
+        updatePolicy == "always" -> Always
+        updatePolicy == DEFAULT_UPDATE_POLICY -> Daily
+        updatePolicy.startsWith(INTERVAL_MATCH) -> OnInterval(
+            updatePolicy.removePrefix(
                 INTERVAL_MATCH
             ).toInt()
         )
-        _updatePolicy == "never" -> Never
+        updatePolicy == "never" -> Never
         else -> Daily
     }
 }
