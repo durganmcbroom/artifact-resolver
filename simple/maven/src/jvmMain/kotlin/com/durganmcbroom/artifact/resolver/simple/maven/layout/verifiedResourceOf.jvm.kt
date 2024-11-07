@@ -25,11 +25,11 @@ internal actual fun verifiedResourceOf(
         )
     }
 
-    val checkString = String(checksum.merge().openStream().readAllBytes())
+    val checkString = String(checksum.merge().openStream().readBytes())
         .trim()
         .let { s -> s.subSequence(0 until s.indexOf(' ').let { (if (it == -1) s.length else it) }) }
 
-    val check = HexFormat.of().parseHex(checkString)
+    val check = Hex.parseHex(checkString)
 
     VerifiedResource(
         unverifiedResource,

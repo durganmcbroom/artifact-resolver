@@ -2,16 +2,16 @@ plugins {
     kotlin("multiplatform")
 }
 
-version = "1.2.4-SNAPSHOT"
+version = "1.2.5-SNAPSHOT"
 
 kotlin {
     explicitApi()
 
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "17"
+            kotlinOptions.jvmTarget = "1.8"
         }
-        jvmToolchain(17)
+        jvmToolchain(8)
 
         withJava()
         testRuns["test"].executionTask.configure {
@@ -20,7 +20,7 @@ kotlin {
 
         java {
             toolchain {
-                languageVersion.set(JavaLanguageVersion.of(17))
+                languageVersion.set(JavaLanguageVersion.of(8))
             }
         }
 

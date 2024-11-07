@@ -4,7 +4,7 @@ plugins {
     id("org.jetbrains.dokka") version "1.9.10"
 }
 
-version = "1.2.3-SNAPSHOT"
+version = "1.2.4-SNAPSHOT"
 
 
 kotlin {
@@ -12,9 +12,9 @@ kotlin {
 
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "17"
+            kotlinOptions.jvmTarget = "1.8"
         }
-        jvmToolchain(17)
+        jvmToolchain(8)
         withJava()
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -22,14 +22,14 @@ kotlin {
 
         java {
             toolchain {
-                languageVersion.set(JavaLanguageVersion.of(17))
+                languageVersion.set(JavaLanguageVersion.of(8))
             }
         }
 
         val main by compilations.getting {
             compileJavaTaskProvider!!.get().run {
-                targetCompatibility = "17"
-                sourceCompatibility = "17"
+                targetCompatibility = "1.8"
+                sourceCompatibility = "1.8"
             }
         }
     }
@@ -83,8 +83,8 @@ allprojects {
         sourceSets {
             val commonMain by getting {
                 dependencies {
-                    api("com.durganmcbroom:jobs:1.3-SNAPSHOT")
-                    implementation("com.durganmcbroom:resource-api:1.1.6-SNAPSHOT")
+                    api("com.durganmcbroom:jobs:1.3.2-SNAPSHOT")
+                    implementation("com.durganmcbroom:resource-api:1.1.7-SNAPSHOT")
                 }
             }
         }

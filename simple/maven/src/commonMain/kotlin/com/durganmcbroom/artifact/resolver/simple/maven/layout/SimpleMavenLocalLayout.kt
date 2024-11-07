@@ -4,6 +4,7 @@ import com.durganmcbroom.jobs.*
 import com.durganmcbroom.resources.Resource
 import com.durganmcbroom.resources.toResource
 import java.nio.file.Path
+import kotlin.io.path.Path
 
 public expect val mavenLocal: String
 
@@ -26,7 +27,7 @@ public open class SimpleMavenLocalLayout(
             artifactId,
             version
         ) + pathSeparator + ("$artifactId-$version${classifier?.let { "-$it" } ?: ""}.$type")).let {
-            Path.of(it).toResource()
+            Path(it).toResource()
         }
     }
 

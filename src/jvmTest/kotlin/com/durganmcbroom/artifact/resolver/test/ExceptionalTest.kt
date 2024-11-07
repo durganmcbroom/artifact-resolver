@@ -3,6 +3,7 @@ package com.durganmcbroom.artifact.resolver.test
 import com.durganmcbroom.artifact.resolver.ArtifactMetadata
 import com.durganmcbroom.artifact.resolver.ArtifactException
 import com.durganmcbroom.artifact.resolver.IterableException
+import com.durganmcbroom.artifact.resolver.RepositorySettings
 import java.lang.IllegalArgumentException
 import kotlin.test.Test
 
@@ -13,7 +14,11 @@ class ExceptionalTest {
             object : ArtifactMetadata.Descriptor {
                 override val name: String = "asdf"
             },
-            listOf("Maven", "More maven", "even more maven", "Hopscotch"),
+            listOf(
+                object : RepositorySettings {},
+                object : RepositorySettings {},
+                object : RepositorySettings {},
+            ),
             listOf("First", "Second", "Third").map {
                 object : ArtifactMetadata.Descriptor {
                     override val name: String
