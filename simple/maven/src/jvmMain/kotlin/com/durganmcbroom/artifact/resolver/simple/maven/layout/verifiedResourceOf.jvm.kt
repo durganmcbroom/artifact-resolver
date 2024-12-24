@@ -1,37 +1,43 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
-import com.durganmcbroom.jobs.*
 import com.durganmcbroom.resources.*
-import java.net.HttpURLConnection
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.header
+import io.ktor.client.request.url
 import java.net.URL
-import java.util.*
 
-internal actual fun verifiedResourceOf(
+internal actual suspend fun verifiedResourceOf(
     location: String,
     checksumLocation: String,
     algorithm: ResourceAlgorithm,
-    requireVerification: Boolean
-): Job<Resource> = job(JobName("Verify resource: '$location'")) {
-    val unverifiedResource = URL(location).toResource()
+    verify: Boolean
+): Resource {
+    val unverifiedResource =
+        RemoteResource(HttpRequestBuilder().apply {
+            url(URL(location))
+        })
 
-    val checksum = result {  URL(checksumLocation).toResource() }
+    if (!verify) return unverifiedResource
+
+    val checksum = runCatching {
+        URL(checksumLocation).toResource()
+    }
 
     if (checksum.isFailure) {
-        return@job if (!requireVerification) unverifiedResource
-        else throw ResourceRetrievalException.ChecksumFileNotFound(
+        throw ResourceRetrievalException.ChecksumFileNotFound(
             location,
             algorithm.name,
             checksum.exceptionOrNull()!!
         )
     }
 
-    val checkString = String(checksum.merge().openStream().readBytes())
+    val checkString = String(checksum.getOrNull()!!.open().toByteArray())
         .trim()
         .let { s -> s.subSequence(0 until s.indexOf(' ').let { (if (it == -1) s.length else it) }) }
 
     val check = Hex.parseHex(checkString)
 
-    VerifiedResource(
+    return VerifiedResource(
         unverifiedResource,
         algorithm,
         check

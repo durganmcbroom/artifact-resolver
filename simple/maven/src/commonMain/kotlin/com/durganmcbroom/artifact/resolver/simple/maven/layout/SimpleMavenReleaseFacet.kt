@@ -1,35 +1,35 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
-import com.durganmcbroom.jobs.Job
 import com.durganmcbroom.resources.Resource
 import com.durganmcbroom.resources.ResourceAlgorithm
 
 public open class SimpleMavenReleaseFacet(
     public val url: String,
     public val preferredAlgorithm: ResourceAlgorithm,
-    public val requireResourceVerification: Boolean
+    private val verify: (classifier: String?, type: String) -> Boolean,
 ) : SimpleMavenRepositoryFacet {
     override val type: String = "release"
 
-    override fun resourceOf(
+    override suspend fun resourceOf(
         groupId: String,
         artifactId: String,
         version: String,
         classifier: String?,
         type: String
-    ): Job<Resource> {
-        return versionedArtifact(
-            groupId,
-            artifactId,
-            version
-        ).resourceAt("${artifactId}-${version}${classifier?.let { "-$it" } ?: ""}.$type", preferredAlgorithm, this.requireResourceVerification)
-    }
+    ): Resource = versionedArtifact(
+        groupId,
+        artifactId,
+        version
+    ).resourceAt("${artifactId}-${version}${classifier?.let { "-$it" } ?: ""}.$type",
+        preferredAlgorithm,
+        verify(classifier, type)
+    )
 
-    protected fun String.resourceAt(
+    protected suspend fun String.resourceAt(
         resource: String,
         algorithm: ResourceAlgorithm,
         requireResourceVerification: Boolean,
-    ): Job<Resource> =
+    ): Resource =
         verifiedResourceOf(
             "$this/$resource",
             run {

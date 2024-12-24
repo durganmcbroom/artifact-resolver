@@ -5,6 +5,8 @@ import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenDefaul
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.parsePom
 import com.durganmcbroom.jobs.Job
+import com.durganmcbroom.jobs.async.AsyncJob
+import com.durganmcbroom.jobs.async.asyncJob
 import com.durganmcbroom.jobs.job
 import com.durganmcbroom.jobs.mapException
 import com.durganmcbroom.resources.Resource
@@ -19,10 +21,10 @@ public open class SimpleMavenArtifactRepository(
 
     override fun get(
         request: SimpleMavenArtifactRequest
-    ): Job<SimpleMavenArtifactMetadata> = job {
+    ): AsyncJob<SimpleMavenArtifactMetadata> = asyncJob {
         val metadata = requestMetadata(request.descriptor) {
             request.withNewDescriptor(it)
-        }().merge()
+        }
 
         val transitiveChildren = if (request.isTransitive) metadata.parents else listOf()
 
@@ -33,24 +35,27 @@ public open class SimpleMavenArtifactRepository(
 
         SimpleMavenArtifactMetadata(
             metadata.descriptor,
-            metadata.resource,
-            allowedChildren,
-        )
+            allowedChildren
+        ) {
+            metadata.jar()
+        }
     }
 
-    protected open fun requestMetadata(
+    protected open suspend fun requestMetadata(
         desc: SimpleMavenDescriptor,
         requestBuilder: (SimpleMavenDescriptor) -> SimpleMavenArtifactRequest
-    ): Job<SimpleMavenArtifactMetadata> = job {
+    ): SimpleMavenArtifactMetadata {
         val (group, artifact, version, classifier) = desc
 
-        val valueOr = layout.resourceOf(group, artifact, version, null, "pom")()
-            .mapException {
-                if (it is ResourceNotFoundException) MetadataRequestException.MetadataNotFound(desc, "pom", it)
-                else MetadataRequestException("Failed to request resource for pom: '$desc'", it)
-            }.merge()
+        val pom = try {
+            val valueOr = layout.resourceOf(group, artifact, version, null, "pom")
 
-        val pom = parsePom(valueOr)().merge()
+            parsePom(valueOr)
+        } catch (e: ResourceNotFoundException) {
+            throw MetadataRequestException.MetadataNotFound(desc, "pom", e)
+        } catch (e: Exception) {
+            throw MetadataRequestException("Failed to request resource for pom: '$desc'", e)
+        }
 
         val dependencies = pom.dependencies
 
@@ -60,12 +65,14 @@ public open class SimpleMavenArtifactRepository(
                     it.url, settings.preferredHash,
                     it.releases.enabled,
                     it.snapshots.enabled,
-                    settings.requireResourceVerification
+                    { classifier, type ->
+                        if (type == "pom") false else settings.requireResourceVerification
+                    }
                 ), settings.preferredHash, settings.pluginProvider, settings.requireResourceVerification
             )
         }
 
-        fun handlePackaging(packaging: String): Resource? {
+        suspend fun handlePackaging(packaging: String): Resource? {
             val ending = when (packaging) {
                 "jar" -> "jar"
                 "war" -> "war"
@@ -81,12 +88,11 @@ public open class SimpleMavenArtifactRepository(
                 version,
                 classifier,
                 ending
-            )().getOrNull()
+            )
         }
 
-        SimpleMavenArtifactMetadata(
+        return SimpleMavenArtifactMetadata(
             desc,
-            handlePackaging(pom.packaging),
             dependencies.map {
                 SimpleMavenParentInfo(
                     requestBuilder(
@@ -101,6 +107,8 @@ public open class SimpleMavenArtifactRepository(
                     it.scope ?: "compile"
                 )
             },
-        )
+        ) {
+            handlePackaging(pom.packaging)
+        }
     }
 }

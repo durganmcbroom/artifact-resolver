@@ -6,8 +6,28 @@ import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMaven
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactMetadata
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRequest
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositorySettings
+import com.durganmcbroom.jobs.Job
+import com.durganmcbroom.jobs.JobContext
+import com.durganmcbroom.jobs.JobFacetFactory
+import com.durganmcbroom.jobs.JobName
+import com.durganmcbroom.jobs.async.mapAsync
 import com.durganmcbroom.jobs.launch
+import com.durganmcbroom.resources.KtorInstance
 import com.durganmcbroom.resources.ResourceAlgorithm
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.headers
+import io.ktor.client.request.url
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.debug.CoroutinesBlockHoundIntegration
+import kotlinx.coroutines.runBlocking
+import reactor.blockhound.BlockHound
+import java.net.URL
+import java.util.concurrent.Executors
+import kotlin.system.measureTimeMillis
 import kotlin.test.Test
 
 class ResolutionTest {
@@ -84,6 +104,30 @@ class ResolutionTest {
     }
 
     @Test
+    fun `Test large artifact`() {
+        BlockHound.install(CoroutinesBlockHoundIntegration())
+        val context = SimpleMaven.createContext(
+            SimpleMavenRepositorySettings.default(
+                url = "https://maven.extframework.dev/snapshots"
+            )
+        )
+
+        launch {
+            runBlocking {
+                // Can take up to a second to get the ktor client setup...
+                KtorInstance.client
+                val time = System.currentTimeMillis()
+                val artifact =
+                    context.getAndResolveAsync(SimpleMavenArtifactRequest("dev.extframework.minecraft:minecraft-provider-def:2.0.13-SNAPSHOT"))().merge()
+
+                println(System.currentTimeMillis() - time)
+
+                artifact.prettyPrint()
+            }
+        }
+    }
+
+    @Test
     fun `Test snapshot artifact resolution`() {
         val context = SimpleMaven.createContext(
             SimpleMavenRepositorySettings.default(
@@ -96,9 +140,12 @@ class ResolutionTest {
             val artifact: Artifact<SimpleMavenArtifactMetadata> =
                 context.getAndResolve(SimpleMavenArtifactRequest("net.minecrell:ServerListPlus:3.5.0-SNAPSHOT"))().merge()
 
-            artifact.prettyPrint {
-                it.metadata.descriptor.toString() + " @ " + (it.metadata.resource?.location ?: "POM")
-            }
+//            runBlocking {
+//                artifact.prettyPrint {
+//                    it.metadata.descriptor.toString() + " @ " + (it.metadata.jar()?.location ?: "POM")
+//                }
+//            }
+
 
             artifactTree("net.minecrell:ServerListPlus:3.5.0-SNAPSHOT") {
                 child("com.google.code.gson:gson:2.8.0")

@@ -1,6 +1,6 @@
 package com.durganmcbroom.artifact.resolver
 
-import com.durganmcbroom.jobs.Job
+import com.durganmcbroom.jobs.async.AsyncJob
 
 public interface ArtifactRepository<S: RepositorySettings, R: ArtifactRequest<*>, T: ArtifactMetadata<*, *>> {
     public val name: String
@@ -10,5 +10,5 @@ public interface ArtifactRepository<S: RepositorySettings, R: ArtifactRequest<*>
 
     public fun get(
         request: R
-    ) : Job<T>
+    ) : AsyncJob<T>
 }

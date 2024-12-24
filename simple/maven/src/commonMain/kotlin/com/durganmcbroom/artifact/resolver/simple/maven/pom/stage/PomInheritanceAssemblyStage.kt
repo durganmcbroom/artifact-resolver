@@ -12,7 +12,7 @@ internal class PomInheritanceAssemblyStage :
     override val name: String = "Pom inheritance assembly"
 
     // TODO Redo the pom inheritance, its technically not fully correct since list fields dont get added together correctly.
-    override fun process(i: ParentResolutionStage.ParentResolutionData): Job<AssembledPomData> {
+    override suspend fun process(i: ParentResolutionStage.ParentResolutionData): AssembledPomData {
         val (data, ref, parents) = i
 
         val all = listOf(data) + parents
@@ -54,7 +54,7 @@ internal class PomInheritanceAssemblyStage :
             packaging
         )
 
-        return SuccessfulJob { AssembledPomData(assembledData, parents, ref) }
+        return AssembledPomData(assembledData, parents, ref)
     }
 
     data class AssembledPomData(

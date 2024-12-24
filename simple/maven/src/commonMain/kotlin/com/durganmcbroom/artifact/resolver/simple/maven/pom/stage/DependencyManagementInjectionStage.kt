@@ -8,15 +8,17 @@ import com.durganmcbroom.artifact.resolver.simple.maven.pom.stage.DependencyMana
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.stage.SecondaryInterpolationStage.SecondaryInterpolationData
 import com.durganmcbroom.jobs.Job
 import com.durganmcbroom.jobs.JobName
+import com.durganmcbroom.jobs.async.mapAsync
 import com.durganmcbroom.jobs.job
+import kotlinx.coroutines.awaitAll
 
 internal class DependencyManagementInjectionStage :
     PomProcessStage<SecondaryInterpolationData, DependencyManagementInjectionData> {
     override val name: String = "Dependency management injection"
 
-    override fun process(
+    override suspend fun process(
         i: SecondaryInterpolationData
-    ): Job<DependencyManagementInjectionData> = job(JobName("Process pom for stage: '$name'")) {
+    ): DependencyManagementInjectionData {
         val (data, repo) = i
 
         val layouts = listOf(repo.layout) + data.repositories.map {
@@ -33,13 +35,16 @@ internal class DependencyManagementInjectionStage :
                 repo.settings.preferredHash,
                 it.releases.enabled,
                 it.snapshots.enabled,
-                repo.settings.requireResourceVerification
+                { _, _ ->
+                    // Only loading poms
+                    false
+                }
             )
         }
 
         val boms = data.dependencyManagement.dependencies
             .filter { it.scope == "import" }
-            .map { bom ->
+            .mapAsync { bom ->
                 val bomResource = layouts.firstNotNullOfOrNull { l ->
                     l.resourceOf(
                         bom.groupId,
@@ -47,15 +52,15 @@ internal class DependencyManagementInjectionStage :
                         bom.version,
                         null,
                         "pom"
-                    )().getOrNull()
+                    )
                 } ?: throw PomException.PomNotFound(
                     "'${bom.groupId}:${bom.artifactId}:${bom.version}'",
                     layouts.map(SimpleMavenRepositoryLayout::name),
                     this@DependencyManagementInjectionStage
                 )
 
-                parseData(bomResource)().merge()
-            }
+                parseData(bomResource)
+            }.awaitAll()
 
         val managedDependencies =
             data.dependencyManagement.dependencies.filterNot { it.scope == "import" } + boms.flatMap { it.dependencyManagement.dependencies }
@@ -76,7 +81,7 @@ internal class DependencyManagementInjectionStage :
             dependencies = dependencies
         )
 
-        DependencyManagementInjectionData(newData, repo)
+        return DependencyManagementInjectionData(newData, repo)
     }
 
     data class DependencyManagementInjectionData(

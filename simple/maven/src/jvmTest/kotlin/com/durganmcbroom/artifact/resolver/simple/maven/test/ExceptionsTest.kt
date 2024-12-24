@@ -7,10 +7,18 @@ import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMaven
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRequest
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositorySettings
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomException
+import com.durganmcbroom.jobs.Job
+import com.durganmcbroom.jobs.JobContext
+import com.durganmcbroom.jobs.JobFacetFactory
+import com.durganmcbroom.jobs.async.mapAsync
 import com.durganmcbroom.jobs.job
 import com.durganmcbroom.jobs.launch
+import com.durganmcbroom.resources.KtorInstance
 import com.durganmcbroom.resources.ResourceAlgorithm
 import com.durganmcbroom.resources.ResourceOpenException
+import io.ktor.client.request.get
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import kotlin.io.path.toPath
 import kotlin.test.Test
 
@@ -27,11 +35,11 @@ class ExceptionsTest {
 
         launch {
             val r = job {
-               context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
-            check(r.isFailure && r.exceptionOrNull() is MetadataRequestException) {""}
+            check(r.isFailure && r.exceptionOrNull() is MetadataRequestException) { "" }
         }
     }
 
@@ -45,12 +53,12 @@ class ExceptionsTest {
         )
 
         launch {
-            val r =job {
+            val r = job {
                 context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
-            check(r.isFailure && r.exceptionOrNull() is MetadataRequestException && r.exceptionOrNull()?.cause is ResourceOpenException) {""}
+            check(r.isFailure && r.exceptionOrNull() is MetadataRequestException && r.exceptionOrNull()?.cause is ResourceOpenException) { "" }
         }
     }
 
@@ -64,13 +72,13 @@ class ExceptionsTest {
         )
 
         launch {
-            val r =job {
+            val r = job {
                 context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
             }()
 
             println(r.exceptionOrNull()?.message)
             r.exceptionOrNull()!!.printStackTrace()
-            check(r.isFailure && r.exceptionOrNull() is ArtifactException.ArtifactNotFound) {""}
+            check(r.isFailure && r.exceptionOrNull() is ArtifactException.ArtifactNotFound) { "" }
         }
     }
 
@@ -79,12 +87,12 @@ class ExceptionsTest {
         val context = SimpleMaven.createContext(SimpleMavenRepositorySettings.mavenCentral())
 
         launch {
-            val r =job {
+            val r = job {
                 context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
-            check(r.isFailure && r.exceptionOrNull() is ArtifactException.ArtifactNotFound) {""}
+            check(r.isFailure && r.exceptionOrNull() is ArtifactException.ArtifactNotFound) { "" }
         }
     }
 
@@ -95,12 +103,12 @@ class ExceptionsTest {
         )
 
         launch {
-            val r =job {
+            val r = job {
                 context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
-            check(r.isFailure && r.exceptionOrNull() is ArtifactException.ArtifactNotFound) {""}
+            check(r.isFailure && r.exceptionOrNull() is ArtifactException.ArtifactNotFound) { "" }
         }
     }
 
@@ -113,7 +121,7 @@ class ExceptionsTest {
         )
 
         launch {
-            val r =job {
+            val r = job {
                 context.getAndResolve(SimpleMavenArtifactRequest("test:artifact-1:1.0"))().merge()
             }()
 
@@ -136,7 +144,7 @@ class ExceptionsTest {
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
-            check(r.exceptionOrNull() is PomException.AssembleException)
+            check(r.exceptionOrNull() is MetadataRequestException)
         }
     }
 
@@ -154,7 +162,7 @@ class ExceptionsTest {
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
-            check(r.exceptionOrNull() is PomException.ParseException)
+            check(r.exceptionOrNull() is MetadataRequestException)
         }
     }
 }

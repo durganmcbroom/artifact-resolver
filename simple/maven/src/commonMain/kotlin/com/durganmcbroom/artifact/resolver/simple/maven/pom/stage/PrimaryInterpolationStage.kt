@@ -11,15 +11,13 @@ internal class PrimaryInterpolationStage :
 
     override val name: String = "Primary Interpolation"
 
-    override fun process(i: PomInheritanceAssemblyStage.AssembledPomData): Job<PrimaryInterpolationData> {
+    override suspend fun process(i: PomInheritanceAssemblyStage.AssembledPomData): PrimaryInterpolationData {
         val (data, parents, repo) = i
 
-        return SuccessfulJob {
-            PropertyReplacer.of(data, parents) {
-                val newData = doInterpolation(data)
+        return PropertyReplacer.of(data, parents) {
+            val newData = doInterpolation(data)
 
-                PrimaryInterpolationData(newData, parents, repo)
-            }
+            PrimaryInterpolationData(newData, parents, repo)
         }
     }
 
@@ -28,5 +26,4 @@ internal class PrimaryInterpolationStage :
         val parents: List<PomData>,
         val thisRepo: SimpleMavenArtifactRepository
     ) : PomProcessStage.StageData
-
 }

@@ -12,15 +12,13 @@ import com.durganmcbroom.jobs.SuccessfulJob
 internal class SecondaryInterpolationStage : PomProcessStage<PluginLoadingData, SecondaryInterpolationData> {
     override val name: String = "Secondary interpolation"
 
-    override fun process(i: PluginLoadingData): Job<SecondaryInterpolationData> {
+    override suspend fun process(i: PluginLoadingData): SecondaryInterpolationData {
         val (data, r, mockPlugins: List<SimpleMavenPlugin>, parents) = i
 
-        return SuccessfulJob {
-            PropertyReplacer.of(data, parents, *mockPlugins.toTypedArray()) {
-                val newData = doInterpolation(data)
+        return PropertyReplacer.of(data, parents, *mockPlugins.toTypedArray()) {
+            val newData = doInterpolation(data)
 
-                SecondaryInterpolationData(newData, r)
-            }
+            SecondaryInterpolationData(newData, r)
         }
     }
 

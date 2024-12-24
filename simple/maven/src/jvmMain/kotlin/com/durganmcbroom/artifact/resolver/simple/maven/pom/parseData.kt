@@ -3,13 +3,16 @@ package com.durganmcbroom.artifact.resolver.simple.maven.pom
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMaven
 import com.durganmcbroom.jobs.*
 import com.durganmcbroom.resources.*
+import com.fasterxml.jackson.databind.DatabindException
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import kotlinx.coroutines.runBlocking
 import java.io.FileNotFoundException
 
 internal val mapper =
@@ -19,20 +22,25 @@ internal val mapper =
         .build()
         .registerModule(KotlinModule.Builder().build())
 
+public actual suspend fun getSuperPom(): PomData {
+    return parseData(
+        object : Resource {
+            override val location: String = SUPER_POM_PATH
 
-public actual val SUPER_POM: PomData = parseData(
-    object : Resource {
-        override val location: String = SUPER_POM_PATH
-
-        override fun open(): ResourceStream {
-            return SimpleMaven::class.java.getResourceAsStream(SUPER_POM_PATH)?.asResourceStream()
-                ?: throw ResourceNotFoundException(location, FileNotFoundException())
+            override suspend fun open(): ResourceStream {
+                return SimpleMaven::class.java.getResourceAsStream(SUPER_POM_PATH)?.asResourceStream()
+                    ?: throw ResourceNotFoundException(location, FileNotFoundException())
+            }
         }
+    )
+}
+
+public actual suspend fun parseData(resource: Resource): PomData {
+    val stream = resource.open().toByteArray()
+
+    return try {
+        mapper.readValue<PomData>(stream)
+    } catch (e: DatabindException) {
+        throw PomException.ParseException(resource.location, e)
     }
-).call(EmptyJobContext).getOrThrow()
-
-public actual fun parseData(resource: Resource): Job<PomData> = job(JobName("Parse pom data: '${resource.location}'")) {
-    val stream = resource.openStream()
-
-    mapper.readValue<PomData>(stream)
-}.mapException { PomException.ParseException(resource.location, it) }
+}

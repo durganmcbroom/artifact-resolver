@@ -2,7 +2,7 @@ plugins {
     kotlin("multiplatform")
 }
 
-version = "1.2.5-SNAPSHOT"
+version = "1.3-SNAPSHOT"
 
 kotlin {
     explicitApi()
@@ -70,6 +70,13 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(project(":"))
+                implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+
+                implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.5.2")
+                implementation("io.projectreactor.tools:blockhound:1.0.6.RELEASE")
             }
         }
     }

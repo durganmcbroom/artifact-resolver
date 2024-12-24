@@ -1,20 +1,16 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.mapper
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.JobName
-import com.durganmcbroom.jobs.job
-import com.durganmcbroom.jobs.mapException
 import com.durganmcbroom.resources.Resource
-import com.durganmcbroom.resources.openStream
+import com.durganmcbroom.resources.toByteArray
 import com.fasterxml.jackson.module.kotlin.readValue
 
-internal actual fun parseSnapshotMetadata(
+internal actual suspend fun parseSnapshotMetadata(
     resource: Resource
-): Job<Map<ArtifactAddress, String>> =
-    job(JobName("Parse snapshot metadata for snapshot artifact: '${resource.location}'")) {
+): Map<ArtifactAddress, String> {
+    try {
         val tree = mapper.readValue<Map<String, Any>>(
-            resource.openStream()
+            resource.open().toByteArray()
         )
 
         val snapshotVersions =
@@ -39,14 +35,15 @@ internal actual fun parseSnapshotMetadata(
             else -> null
         }
 
-        snapshots ?: throw ResourceRetrievalException.MetadataParseFailed(
+        return snapshots ?: throw ResourceRetrievalException.MetadataParseFailed(
             resource.location,
             "Unknown type for node 'snapshotVersion'. Expected a map or list."
         )
-    }.mapException {
-        ResourceRetrievalException.MetadataParseFailed(
+    } catch (e: Exception) {
+        throw ResourceRetrievalException.MetadataParseFailed(
             resource.location,
             "Error occurred while parsing metadata for resource: '${resource.location}'",
-            it
+            e
         )
     }
+}

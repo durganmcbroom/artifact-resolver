@@ -14,7 +14,7 @@ import com.durganmcbroom.jobs.Job
 public interface PomProcessStage<in I: PomProcessStage.StageData, out O: PomProcessStage.StageData> {
     public val name: String
 
-    public fun process(i: I) : Job<O>
+    public suspend fun process(i: I) : O
 
     public interface StageData
 }

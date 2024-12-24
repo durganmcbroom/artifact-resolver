@@ -13,9 +13,9 @@ internal class PluginManagementInjectionStage :
 
     override val name: String = "Plugin management injection"
 
-    override fun process(
+    override suspend fun process(
         i: PrimaryInterpolationStage.PrimaryInterpolationData
-    ): Job<PluginManagementInjectionData> {
+    ): PluginManagementInjectionData {
         val (data, parents, repo) = i
 
         val build = data.build
@@ -43,7 +43,7 @@ internal class PluginManagementInjectionStage :
             )
         )
 
-        return SuccessfulJob { PluginManagementInjectionData(newData, parents, repo) }
+        return PluginManagementInjectionData(newData, parents, repo)
     }
 
     data class PluginManagementInjectionData(

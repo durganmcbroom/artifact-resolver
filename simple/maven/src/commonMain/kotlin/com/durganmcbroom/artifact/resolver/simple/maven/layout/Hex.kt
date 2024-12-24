@@ -1,7 +1,7 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
 internal object Hex {
-    public fun parseHex(hex: CharSequence): ByteArray {
+    fun parseHex(hex: CharSequence): ByteArray {
         val length = hex.length
         val byteArray = ByteArray(length / 2)
 
@@ -12,7 +12,7 @@ internal object Hex {
         return byteArray
     }
 
-    public fun formatHex(bytes: ByteArray): String {
+    fun formatHex(bytes: ByteArray): String {
         val hexString = StringBuilder(bytes.size * 2)
 
         for (byte in bytes) {

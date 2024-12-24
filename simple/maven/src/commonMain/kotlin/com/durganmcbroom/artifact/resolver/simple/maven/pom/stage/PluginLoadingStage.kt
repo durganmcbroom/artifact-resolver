@@ -13,9 +13,9 @@ internal class PluginLoadingStage :
     PomProcessStage<PluginManagementInjectionStage.PluginManagementInjectionData, PluginLoadingStage.PluginLoadingData> {
     override val name = "Plugin loading"
 
-    override fun process(
+    override suspend fun process(
         i: PluginManagementInjectionStage.PluginManagementInjectionData
-    ): Job<PluginLoadingData> {
+    ): PluginLoadingData {
         val (data, parents, repo) = i
 
         val plugins = data.build.plugins
@@ -37,7 +37,7 @@ internal class PluginLoadingStage :
             )
         }
 
-        return SuccessfulJob { PluginLoadingData(data, repo, mockPlugins, parents) }
+        return PluginLoadingData(data, repo, mockPlugins, parents)
     }
 
     data class PluginLoadingData(

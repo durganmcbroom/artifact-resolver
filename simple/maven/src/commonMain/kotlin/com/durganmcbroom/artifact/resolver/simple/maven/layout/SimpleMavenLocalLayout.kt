@@ -1,9 +1,7 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
-import com.durganmcbroom.jobs.*
 import com.durganmcbroom.resources.Resource
 import com.durganmcbroom.resources.toResource
-import java.nio.file.Path
 import kotlin.io.path.Path
 
 public expect val mavenLocal: String
@@ -15,21 +13,20 @@ public open class SimpleMavenLocalLayout(
 ) : SimpleMavenRepositoryLayout {
     override val name: String = "local"
 
-    override fun resourceOf(
+    override suspend fun resourceOf(
         groupId: String,
         artifactId: String,
         version: String,
         classifier: String?,
         type: String
-    ): Job<Resource> = job {
-        (versionedArtifact(
-            groupId,
-            artifactId,
-            version
-        ) + pathSeparator + ("$artifactId-$version${classifier?.let { "-$it" } ?: ""}.$type")).let {
-            Path(it).toResource()
-        }
+    ): Resource = (versionedArtifact(
+        groupId,
+        artifactId,
+        version
+    ) + pathSeparator + ("$artifactId-$version${classifier?.let { "-$it" } ?: ""}.$type")).let {
+        Path(it).toResource()
     }
+
 
     private fun baseArtifact(group: String, artifact: String): String =
         "${location.removeSuffix(pathSeparator)}$pathSeparator${group.replace('.', '/')}$pathSeparator$artifact"

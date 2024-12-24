@@ -1,24 +1,23 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
-import com.durganmcbroom.jobs.*
 import com.durganmcbroom.resources.Resource
 import com.durganmcbroom.resources.ResourceAlgorithm
 
 public class SimpleMavenSnapshotFacet(
     url: String,
     preferredAlgorithm: ResourceAlgorithm,
-    requireResourceVerification: Boolean
-) : SimpleMavenReleaseFacet(url, preferredAlgorithm, requireResourceVerification) {
+    private val verify: (classifier: String?, type: String) -> Boolean,
+) : SimpleMavenReleaseFacet(url, preferredAlgorithm, verify) {
     override val type: String = "snapshot"
 
-    override fun resourceOf(
+    override suspend fun resourceOf(
         groupId: String,
         artifactId: String,
         version: String,
         classifier: String?,
         type: String
-    ): Job<Resource> = job(JobName("Find resource: '$groupId:$artifactId:$version:$classifier'")) {
-        val snapshots = parseSnapshotMetadata(versionMetaOf(groupId, artifactId, version)().merge())().merge()
+    ): Resource {
+        val snapshots = parseSnapshotMetadata(versionMetaOf(groupId, artifactId, version))
         val snapshotVersion =
             snapshots[ArtifactAddress(classifier, type)] ?: throw ResourceRetrievalException.SnapshotNotFound(
                 classifier,
@@ -30,15 +29,15 @@ public class SimpleMavenSnapshotFacet(
 
         val s = "${artifactId}-${snapshotVersion}${classifier?.let { "-$it" } ?: ""}.$type"
 
-        versionedArtifact.resourceAt(s, preferredAlgorithm, requireResourceVerification)().merge()
+        return versionedArtifact.resourceAt(s, preferredAlgorithm, verify(classifier, type))
     }
 
-    protected fun versionMetaOf(
+    protected suspend fun versionMetaOf(
         g: String,
         a: String,
         v: String
-    ): Job<Resource> =
-        versionedArtifact(g, a, v).resourceAt("maven-metadata.xml", preferredAlgorithm, requireResourceVerification)
+    ): Resource =
+        versionedArtifact(g, a, v).resourceAt("maven-metadata.xml", preferredAlgorithm, false)
 }
 
 internal data class ArtifactAddress(
@@ -46,4 +45,4 @@ internal data class ArtifactAddress(
     val type: String
 )
 
-internal expect fun parseSnapshotMetadata(resource: Resource): Job<Map<ArtifactAddress, String>>
+internal expect suspend fun parseSnapshotMetadata(resource: Resource): Map<ArtifactAddress, String>

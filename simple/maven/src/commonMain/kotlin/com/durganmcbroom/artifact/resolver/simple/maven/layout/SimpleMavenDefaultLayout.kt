@@ -1,7 +1,6 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
-import com.durganmcbroom.jobs.FailingJob
-import com.durganmcbroom.jobs.Job
+import com.durganmcbroom.jobs.async.asyncJob
 import com.durganmcbroom.resources.Resource
 import com.durganmcbroom.resources.ResourceAlgorithm
 
@@ -10,25 +9,34 @@ public open class SimpleMavenDefaultLayout(
     preferredAlgorithm: ResourceAlgorithm,
     public val releasesEnabled: Boolean,
     public val snapshotsEnabled: Boolean,
-    requireResourceVerification: Boolean
+    verify: (classifier: String?, type: String) -> Boolean,
 ) : SimpleMavenRepositoryLayout {
     override val name: String = "default@$location"
 
-    private val releaseFacet = SimpleMavenReleaseFacet(location, preferredAlgorithm, requireResourceVerification)
-    private val snapshotFacet = SimpleMavenSnapshotFacet(location, preferredAlgorithm, requireResourceVerification)
+    private val releaseFacet = SimpleMavenReleaseFacet(location, preferredAlgorithm, verify)
+    private val snapshotFacet = SimpleMavenSnapshotFacet(location, preferredAlgorithm, verify)
 
-    override fun resourceOf(
+    override suspend fun resourceOf(
         groupId: String,
         artifactId: String,
         version: String,
         classifier: String?,
         type: String
-    ): Job<Resource> =
-        (if (version.endsWith("-SNAPSHOT") && snapshotsEnabled) snapshotFacet else if (releasesEnabled) releaseFacet else null)?.resourceOf(
+    ): Resource =
+        (if (version.endsWith("-SNAPSHOT") && snapshotsEnabled) {
+            snapshotFacet
+        } else if (releasesEnabled) {
+            releaseFacet
+        } else {
+            null
+        })?.resourceOf(
             groupId,
             artifactId,
             version,
             classifier,
             type
-        ) ?: FailingJob { ResourceRetrievalException.NoEnabledFacet("$groupId:$artifactId:$version:${classifier?.let { "-$it" } ?: ""}:$type", this) }
+        ) ?: throw ResourceRetrievalException.NoEnabledFacet(
+            "$groupId:$artifactId:$version:${classifier?.let { "-$it" } ?: ""}:$type",
+            this@SimpleMavenDefaultLayout
+        )
 }

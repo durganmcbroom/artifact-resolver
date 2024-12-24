@@ -22,12 +22,14 @@ public open class SimpleMavenRepositorySettings @JvmOverloads constructor(
             snapshotsEnabled: Boolean = true,
             preferredHash: ResourceAlgorithm = ResourceAlgorithm.SHA1,
             pluginProvider: SimplePluginProvider = SimplePluginProvider { _, _, _, _ -> null },
-            requireResourceVerification: Boolean = true
+            requireResourceVerification: Boolean = false
         ): SimpleMavenRepositorySettings = SimpleMavenRepositorySettings(
             SimpleMavenDefaultLayout(
                 url,
-                preferredHash, releasesEnabled, snapshotsEnabled, requireResourceVerification
-            ),
+                preferredHash, releasesEnabled, snapshotsEnabled
+            ) { _, type ->
+                if (type == "pom") false else requireResourceVerification
+            },
             preferredHash,
             pluginProvider,
             requireResourceVerification

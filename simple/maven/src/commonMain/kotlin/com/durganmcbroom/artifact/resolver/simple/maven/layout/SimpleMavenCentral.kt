@@ -1,14 +1,12 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
-import com.durganmcbroom.resources.ResourceAlgorithm
-
 public const val MAVEN_CENTRAL_REPO: String = "https://repo.maven.apache.org/maven2"
 
-public fun SimpleMavenCentral(algorithm: ResourceAlgorithm): SimpleMavenDefaultLayout = SimpleMavenDefaultLayout(
-    MAVEN_CENTRAL_REPO,
-    algorithm,
-    releasesEnabled = true,
-    snapshotsEnabled = false,
-    true // Its maven central, it provides them.
-)
+//public fun SimpleMavenCentral(algorithm: ResourceAlgorithm): SimpleMavenDefaultLayout = SimpleMavenDefaultLayout(
+//    MAVEN_CENTRAL_REPO,
+//    algorithm,
+//    releasesEnabled = true,
+//    snapshotsEnabled = false,
+//    true // Its maven central, it provides them.
+//)
 
