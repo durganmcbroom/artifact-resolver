@@ -2,6 +2,7 @@ package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.mapper
 import com.durganmcbroom.resources.Resource
+import com.durganmcbroom.resources.ResourceNotFoundException
 import com.durganmcbroom.resources.toByteArray
 import com.fasterxml.jackson.module.kotlin.readValue
 
@@ -39,6 +40,8 @@ internal actual suspend fun parseSnapshotMetadata(
             resource.location,
             "Unknown type for node 'snapshotVersion'. Expected a map or list."
         )
+    } catch (e: ResourceNotFoundException) {
+        throw e
     } catch (e: Exception) {
         throw ResourceRetrievalException.MetadataParseFailed(
             resource.location,

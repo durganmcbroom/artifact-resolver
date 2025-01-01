@@ -83,6 +83,46 @@ class ExceptionsTest {
     }
 
     @Test
+    fun `Snapshot Artifact doesnt exist`() {
+        val context = SimpleMaven.createContext(
+            SimpleMavenRepositorySettings.default(
+                "https://maven.extframework.dev/snapshots",
+                preferredHash = ResourceAlgorithm.SHA1
+            )
+        )
+
+        launch {
+            val r = job {
+                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a-SNAPSHOT"))().merge()
+            }()
+
+            println(r.exceptionOrNull()?.message)
+            r.exceptionOrNull()!!.printStackTrace()
+            check(r.isFailure && r.exceptionOrNull() is ArtifactException.ArtifactNotFound) { "" }
+        }
+    }
+
+    @Test
+    fun `Snapshot version doesnt exist`() {
+        val context = SimpleMaven.createContext(
+            SimpleMavenRepositorySettings.default(
+                "https://maven.extframework.dev/snapshots",
+                preferredHash = ResourceAlgorithm.SHA1
+            )
+        )
+
+        launch {
+            val r = job {
+                context.getAndResolve(SimpleMavenArtifactRequest("dev.extframework:ext-loader:a-SNAPSHOT"))().merge()
+            }()
+
+            println(r.exceptionOrNull()?.message)
+            r.exceptionOrNull()!!.printStackTrace()
+            check(r.isFailure && r.exceptionOrNull() is ArtifactException.ArtifactNotFound) { "" }
+        }
+    }
+
+    @Test
     fun `Illegal artifact`() {
         val context = SimpleMaven.createContext(SimpleMavenRepositorySettings.mavenCentral())
 
