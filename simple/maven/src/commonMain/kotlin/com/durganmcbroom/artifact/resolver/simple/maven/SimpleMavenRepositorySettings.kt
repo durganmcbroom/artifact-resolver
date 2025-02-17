@@ -63,4 +63,17 @@ public open class SimpleMavenRepositorySettings @JvmOverloads constructor(
     override fun toString(): String {
         return "SimpleMavenRepositorySettings(layout=${layout.name}, preferredHash=$preferredHash)"
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SimpleMavenRepositorySettings) return false
+
+        if (layout != other.layout) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return layout.hashCode()
+    }
 }

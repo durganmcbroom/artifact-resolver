@@ -16,18 +16,18 @@ public fun <
         S : RepositorySettings,
         R : ArtifactRequest<*>,
         M : ArtifactMetadata<*, ArtifactMetadata.ParentInfo<R, S>>>
-        RepositoryFactory<S, ArtifactRepository<S, R, M>>.createContext(
-    settings: S,
-): ResolutionContext<S, R, M> = ResolutionContext(
-    createNew(settings)
-)
+        RepositoryFactory<S, ArtifactRepository<S, R, M>>.createContext(): ResolutionContext<S, R, M> =
+    ResolutionContext(
+        this
+    )
 
 public sealed class ArtifactResolutionException(message: String) : ArtifactException(message) {
     public data class CircularArtifacts(
         val trace: List<ArtifactMetadata.Descriptor>,
-    ) : ArtifactResolutionException("Circular artifacts found! Trace was: '${
-        trace.joinToString(separator = " -> ") { it.name }
-    }'")
+    ) : ArtifactResolutionException(
+        "Circular artifacts found! Trace was: '${
+            trace.joinToString(separator = " -> ") { it.name }
+        }'")
 }
 
 public open class ResolutionContext<
@@ -35,72 +35,89 @@ public open class ResolutionContext<
         R : ArtifactRequest<*>,
         M : ArtifactMetadata<*, ArtifactMetadata.ParentInfo<R, S>>
         >(
-    public open val repository: ArtifactRepository<S, R, M>
+//    public open val repository: ArtifactRepository<S, R, M>
+    public val factory: RepositoryFactory<S, ArtifactRepository<S, R, M>>
 ) {
+    protected val mutex: Mutex = Mutex()
+    protected val cache: MutableMap<Pair<R, S>, Deferred<Artifact<M>?>> = concurrentHashMap()
+
     public open fun getAndResolve(
         request: R,
+        repository: S,
     ): Job<Artifact<M>> = job {
         runBlocking(Dispatchers.IO) {
-            getAndResolveAsync(request)().merge()
+            getAndResolveAsync(request, repository)().merge()
         }
     }
 
     public open fun getAndResolveAsync(
         request: R,
+        repository: S,
     ): AsyncJob<Artifact<M>> = asyncJob {
-        val artifact = repository.get(request)().mapException {
-            if (it is MetadataRequestException.MetadataNotFound) ArtifactException.ArtifactNotFound(
-                request.descriptor,
-                listOf(repository.settings),
-                listOf(),
-                it
-            ) else it
-        }.merge()
-
-        getAndResolveAsync(artifact, ConcurrentHashMap(), listOf())().merge()
+        getAndResolveAsync(request, listOf(repository), listOf())().merge()
     }
 
     protected open fun getAndResolveAsync(
-        metadata: M,
-        cache: MutableMap<R, Deferred<Artifact<M>>>,
+//        metadata: M,
+        request: R,
+        candidates: List<S>,
+
         trace: List<ArtifactMetadata.Descriptor>
     ): AsyncJob<Artifact<M>> = asyncJob {
         coroutineScope {
-            val newChildren = metadata.parents
-                .map { child ->
-                    if (trace.contains(child.request.descriptor)) throw ArtifactResolutionException.CircularArtifacts(
-                        trace + metadata.descriptor
-                    )
+            if (trace.contains(request.descriptor))
+                throw ArtifactResolutionException.CircularArtifacts(trace)
 
-                    cache[child.request] ?: async {
-                        val exceptions = mutableListOf<Throwable>()
+            val exceptions = concurrentList<Throwable>()
 
-                        val childMetadata = child.candidates.firstNotNullOfOrNull { candidate ->
-                            val childMetadata = repository.factory.createNew(candidate).get(child.request)()
+            val results = try {
+                // We lock outside the map because candidates should be unique.
+                mutex.lock()
+                candidates.map { candidate ->
+                    cache[request to candidate] ?: run {
+                        val job = async {
+                            val childMetadata = factory.createNew(candidate).get(request)()
 
-                            childMetadata.getOrElse {
+                            val metadata = childMetadata.getOrElse {
                                 exceptions.add(it)
                                 null
-                            }
-                        } ?: exceptions
-                            .filter { it !is MetadataRequestException.MetadataNotFound }
-                            .takeUnless { it.isEmpty() }
-                            ?.let { throw it.first() }
-                        ?: throw ArtifactException.ArtifactNotFound(
-                            child.request.descriptor,
-                            child.candidates,
-                            trace
-                        )
+                            } ?: return@async null
 
-                        getAndResolveAsync(childMetadata, cache, trace + child.request.descriptor)().merge()
-                    }.also {
-                        cache[child.request] = it
+                            val newChildren = metadata.parents
+                                .map { child ->
+                                    getAndResolveAsync(
+                                        child.request,
+                                        child.candidates,
+                                        trace + request.descriptor
+                                    )().merge()
+                                }
+
+                            Artifact(
+                                metadata,
+                                newChildren
+                            )
+                        }
+
+                        cache[request to candidate] = job
+
+                        job
                     }
                 }
+            } finally {
+                mutex.unlock()
+            }
 
-            Artifact(
-                metadata,
-                newChildren.awaitAll()
+            results
+                .awaitAll()
+                .filterNotNull()
+                .firstOrNull() ?: exceptions
+                .filter { it !is MetadataRequestException.MetadataNotFound }
+                .takeUnless { it.isEmpty() }
+                ?.let { throw it.first() }
+            ?: throw ArtifactException.ArtifactNotFound(
+                request.descriptor,
+                candidates,
+                trace
             )
         }
     }

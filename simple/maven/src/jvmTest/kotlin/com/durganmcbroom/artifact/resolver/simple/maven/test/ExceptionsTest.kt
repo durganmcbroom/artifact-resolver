@@ -27,15 +27,16 @@ class ExceptionsTest {
     @Test
     fun `Illegal repository`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.default(
-                "aa",
-                preferredHash = ResourceAlgorithm.SHA1
-            )
+
         )
 
         launch {
             val r = job {
-                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"),
+                    SimpleMavenRepositorySettings.default(
+                        "aa",
+                        preferredHash = ResourceAlgorithm.SHA1
+                    ))().merge()
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
@@ -46,15 +47,15 @@ class ExceptionsTest {
     @Test
     fun `Repository doesnt exist`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.default(
-                "https://doesntexist.yes",
-                preferredHash = ResourceAlgorithm.SHA1
-            )
+
         )
 
         launch {
             val r = job {
-                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"),SimpleMavenRepositorySettings.default(
+                    "https://doesntexist.yes",
+                    preferredHash = ResourceAlgorithm.SHA1
+                ))().merge()
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
@@ -65,15 +66,15 @@ class ExceptionsTest {
     @Test
     fun `Artifact doesnt exist`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.default(
-                "https://maven.extframework.dev/snapshots",
-                preferredHash = ResourceAlgorithm.SHA1
-            )
+
         )
 
         launch {
             val r = job {
-                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"),SimpleMavenRepositorySettings.default(
+                    "https://maven.extframework.dev/snapshots",
+                    preferredHash = ResourceAlgorithm.SHA1
+                ))().merge()
             }()
 
             println(r.exceptionOrNull()?.message)
@@ -85,15 +86,15 @@ class ExceptionsTest {
     @Test
     fun `Snapshot Artifact doesnt exist`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.default(
-                "https://maven.extframework.dev/snapshots",
-                preferredHash = ResourceAlgorithm.SHA1
-            )
+
         )
 
         launch {
             val r = job {
-                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a-SNAPSHOT"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a-SNAPSHOT"), SimpleMavenRepositorySettings.default(
+                    "https://maven.extframework.dev/snapshots",
+                    preferredHash = ResourceAlgorithm.SHA1
+                ))().merge()
             }()
 
             println(r.exceptionOrNull()?.message)
@@ -105,15 +106,15 @@ class ExceptionsTest {
     @Test
     fun `Snapshot version doesnt exist`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.default(
-                "https://maven.extframework.dev/snapshots",
-                preferredHash = ResourceAlgorithm.SHA1
-            )
+
         )
 
         launch {
             val r = job {
-                context.getAndResolve(SimpleMavenArtifactRequest("dev.extframework:ext-loader:a-SNAPSHOT"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("dev.extframework:ext-loader:a-SNAPSHOT"), SimpleMavenRepositorySettings.default(
+                    "https://maven.extframework.dev/snapshots",
+                    preferredHash = ResourceAlgorithm.SHA1
+                ))().merge()
             }()
 
             println(r.exceptionOrNull()?.message)
@@ -124,11 +125,11 @@ class ExceptionsTest {
 
     @Test
     fun `Illegal artifact`() {
-        val context = SimpleMaven.createContext(SimpleMavenRepositorySettings.mavenCentral())
+        val context = SimpleMaven.createContext()
 
         launch {
             val r = job {
-                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"),SimpleMavenRepositorySettings.mavenCentral())().merge()
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
@@ -139,12 +140,12 @@ class ExceptionsTest {
     @Test
     fun `Test local artifact not found exceptions`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.local()
+
         )
 
         launch {
             val r = job {
-                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("a:a:a"),SimpleMavenRepositorySettings.local())().merge()
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
@@ -155,14 +156,14 @@ class ExceptionsTest {
     @Test
     fun `Test local artifacts dependencies are not found`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.local(
-                this::class.java.getResource("/test-repo")!!.toURI().toPath().toString()
-            )
+
         )
 
         launch {
             val r = job {
-                context.getAndResolve(SimpleMavenArtifactRequest("test:artifact-1:1.0"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("test:artifact-1:1.0"), SimpleMavenRepositorySettings.local(
+                    this::class.java.getResource("/test-repo")!!.toURI().toPath().toString()
+                ))().merge()
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
@@ -173,14 +174,14 @@ class ExceptionsTest {
     @Test
     fun `Test poorly assembled pom throws correctly`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.local(
-                this::class.java.getResource("/test-repo")!!.toURI().toPath().toString()
-            )
+
         )
 
         launch {
             val r = job {
-                context.getAndResolve(SimpleMavenArtifactRequest("test:artifact-2:1.0"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("test:artifact-2:1.0"),SimpleMavenRepositorySettings.local(
+                    this::class.java.getResource("/test-repo")!!.toURI().toPath().toString()
+                ))().merge()
             }()
 
             r.exceptionOrNull()!!.printStackTrace()
@@ -191,14 +192,14 @@ class ExceptionsTest {
     @Test
     fun `Test invalid pom throws correctly`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.local(
-                this::class.java.getResource("/test-repo")!!.toURI().toPath().toString()
-            )
+
         )
 
         launch {
             val r = job {
-                context.getAndResolve(SimpleMavenArtifactRequest("test:artifact-3:1.0"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("test:artifact-3:1.0"), SimpleMavenRepositorySettings.local(
+                    this::class.java.getResource("/test-repo")!!.toURI().toPath().toString()
+                ))().merge()
             }()
 
             r.exceptionOrNull()!!.printStackTrace()

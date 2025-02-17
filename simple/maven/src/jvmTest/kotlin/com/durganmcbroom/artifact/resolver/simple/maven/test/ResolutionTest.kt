@@ -34,13 +34,13 @@ class ResolutionTest {
     @Test
     fun `Test basic artifact resolution`() {
         val repository = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.mavenCentral(
-                preferredHash = ResourceAlgorithm.SHA1
-            )
+
         )
         launch {
             val artifact =
-                repository.getAndResolve(SimpleMavenArtifactRequest("org.springframework:spring-context:5.3.22"))().merge()
+                repository.getAndResolve(SimpleMavenArtifactRequest("org.springframework:spring-context:5.3.22"),SimpleMavenRepositorySettings.mavenCentral(
+                    preferredHash = ResourceAlgorithm.SHA1
+                ))().merge()
 
             artifact.prettyPrint()
 
@@ -76,12 +76,12 @@ class ResolutionTest {
     @Test
     fun `Test pretty artifact resolution`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.mavenCentral()
+
         )
 
         launch {
             val artifact =
-                context.getAndResolve(SimpleMavenArtifactRequest("com.sparkjava:spark-core:2.9.4"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("com.sparkjava:spark-core:2.9.4"), SimpleMavenRepositorySettings.mavenCentral())().merge()
 
             artifact.prettyPrint()
         }
@@ -90,14 +90,14 @@ class ResolutionTest {
     @Test
     fun `Test artifact is found even with terminating slash in repository path`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.default(
-                url = "https://repo.maven.apache.org/maven2/"
-            )
+
         )
 
         launch {
             val artifact =
-                context.getAndResolve(SimpleMavenArtifactRequest("org.jetbrains.kotlin:kotlin-stdlib:1.9.21"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("org.jetbrains.kotlin:kotlin-stdlib:1.9.21"),SimpleMavenRepositorySettings.default(
+                    url = "https://repo.maven.apache.org/maven2/"
+                ))().merge()
 
             artifact.prettyPrint()
         }
@@ -107,9 +107,7 @@ class ResolutionTest {
     fun `Test large artifact`() {
         BlockHound.install(CoroutinesBlockHoundIntegration())
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.default(
-                url = "https://maven.extframework.dev/snapshots"
-            )
+
         )
 
         launch {
@@ -118,11 +116,13 @@ class ResolutionTest {
                 KtorInstance.client
                 val time = System.currentTimeMillis()
                 val artifact =
-                    context.getAndResolveAsync(SimpleMavenArtifactRequest("dev.extframework.minecraft:minecraft-provider-def:2.0.13-SNAPSHOT"))().merge()
+                    context.getAndResolveAsync(SimpleMavenArtifactRequest("dev.extframework.minecraft:minecraft-provider-def:2.0.13-SNAPSHOT"),SimpleMavenRepositorySettings.default(
+                        url = "https://maven.extframework.dev/snapshots"
+                    ))().merge()
 
                 println(System.currentTimeMillis() - time)
 
-                artifact.prettyPrint()
+//                artifact.prettyPrint()
             }
         }
     }
@@ -130,15 +130,15 @@ class ResolutionTest {
     @Test
     fun `Test snapshot artifact resolution`() {
         val context = SimpleMaven.createContext(
-            SimpleMavenRepositorySettings.default(
-                "https://repo.codemc.io/repository/maven-snapshots",
-                preferredHash = ResourceAlgorithm.SHA1
-            )
+
         )
 
         launch {
             val artifact: Artifact<SimpleMavenArtifactMetadata> =
-                context.getAndResolve(SimpleMavenArtifactRequest("net.minecrell:ServerListPlus:3.5.0-SNAPSHOT"))().merge()
+                context.getAndResolve(SimpleMavenArtifactRequest("net.minecrell:ServerListPlus:3.5.0-SNAPSHOT"),SimpleMavenRepositorySettings.default(
+                    "https://repo.codemc.io/repository/maven-snapshots",
+                    preferredHash = ResourceAlgorithm.SHA1
+                ))().merge()
 
 //            runBlocking {
 //                artifact.prettyPrint {

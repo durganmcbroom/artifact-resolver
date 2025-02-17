@@ -1,6 +1,5 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.layout
 
-import com.durganmcbroom.jobs.async.asyncJob
 import com.durganmcbroom.resources.Resource
 import com.durganmcbroom.resources.ResourceAlgorithm
 
@@ -39,4 +38,22 @@ public open class SimpleMavenDefaultLayout(
             "$groupId:$artifactId:$version:${classifier?.let { "-$it" } ?: ""}:$type",
             this@SimpleMavenDefaultLayout
         )
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SimpleMavenDefaultLayout) return false
+
+        if (releasesEnabled != other.releasesEnabled) return false
+        if (snapshotsEnabled != other.snapshotsEnabled) return false
+        if (location != other.location) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = releasesEnabled.hashCode()
+        result = 31 * result + snapshotsEnabled.hashCode()
+        result = 31 * result + location.hashCode()
+        return result
+    }
 }

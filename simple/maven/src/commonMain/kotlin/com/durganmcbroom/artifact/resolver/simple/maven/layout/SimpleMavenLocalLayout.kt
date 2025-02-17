@@ -32,5 +32,16 @@ public open class SimpleMavenLocalLayout(
         "${location.removeSuffix(pathSeparator)}$pathSeparator${group.replace('.', '/')}$pathSeparator$artifact"
 
     private fun versionedArtifact(g: String, a: String, v: String): String = "${baseArtifact(g, a)}$pathSeparator$v"
-}
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is SimpleMavenLocalLayout) return false
 
+        if (location != other.location) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return location.hashCode()
+    }
+}
