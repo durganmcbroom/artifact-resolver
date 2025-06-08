@@ -4,7 +4,7 @@ plugins {
     id("org.jetbrains.dokka") version "1.9.10"
 }
 
-version = "1.4-SNAPSHOT"
+version = "1.4.1-SNAPSHOT"
 
 kotlin {
     explicitApi()

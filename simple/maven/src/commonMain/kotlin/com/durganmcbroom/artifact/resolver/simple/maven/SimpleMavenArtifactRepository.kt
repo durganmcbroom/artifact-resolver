@@ -100,7 +100,7 @@ public open class SimpleMavenArtifactRepository(
                             it.groupId,
                             it.artifactId,
                             it.version!!,
-                            it.classifier
+                            it.classifier ?: desc.classifier,
                         )
                     ),
                     repositories,
