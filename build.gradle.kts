@@ -4,7 +4,6 @@ plugins {
     id("org.jetbrains.dokka") version "1.9.10"
 }
 
-version = "1.4.1-SNAPSHOT"
 
 kotlin {
     explicitApi()
@@ -62,6 +61,7 @@ allprojects {
     apply(plugin = "org.jetbrains.dokka")
 
     group = "com.durganmcbroom"
+    version = "1.4.1-SNAPSHOT"
 
     repositories {
         mavenCentral()
