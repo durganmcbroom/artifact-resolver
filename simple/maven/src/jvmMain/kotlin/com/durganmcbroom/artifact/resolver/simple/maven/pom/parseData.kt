@@ -1,18 +1,13 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom
 
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMaven
-import com.durganmcbroom.jobs.*
 import com.durganmcbroom.resources.*
 import com.fasterxml.jackson.databind.DatabindException
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.MapperFeature
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import kotlinx.coroutines.runBlocking
 import java.io.FileNotFoundException
 
 internal val mapper =

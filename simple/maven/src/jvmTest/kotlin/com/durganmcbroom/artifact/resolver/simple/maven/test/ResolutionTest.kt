@@ -6,41 +6,26 @@ import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMaven
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactMetadata
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRequest
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositorySettings
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.JobContext
-import com.durganmcbroom.jobs.JobFacetFactory
-import com.durganmcbroom.jobs.JobName
-import com.durganmcbroom.jobs.async.mapAsync
-import com.durganmcbroom.jobs.launch
 import com.durganmcbroom.resources.KtorInstance
 import com.durganmcbroom.resources.ResourceAlgorithm
-import io.ktor.client.HttpClient
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.headers
-import io.ktor.client.request.url
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.debug.CoroutinesBlockHoundIntegration
 import kotlinx.coroutines.runBlocking
 import reactor.blockhound.BlockHound
-import java.net.URL
-import java.util.concurrent.Executors
-import kotlin.system.measureTimeMillis
 import kotlin.test.Test
 
 class ResolutionTest {
     @Test
     fun `Test basic artifact resolution`() {
-        val repository = SimpleMaven.createContext(
+        val repository = SimpleMaven.createContext()
 
-        )
-        launch {
+        runBlocking {
             val artifact =
-                repository.getAndResolve(SimpleMavenArtifactRequest("org.springframework:spring-context:5.3.22"),SimpleMavenRepositorySettings.mavenCentral(
-                    preferredHash = ResourceAlgorithm.SHA1
-                ))().merge()
+                repository.getAndResolveAsync(
+                    SimpleMavenArtifactRequest("org.springframework:spring-context:5.3.22"),
+                    SimpleMavenRepositorySettings.mavenCentral(
+                        preferredHash = ResourceAlgorithm.SHA1
+                    )
+                )
 
             artifact.prettyPrint()
 
@@ -75,13 +60,14 @@ class ResolutionTest {
 
     @Test
     fun `Test pretty artifact resolution`() {
-        val context = SimpleMaven.createContext(
+        val context = SimpleMaven.createContext()
 
-        )
-
-        launch {
+        runBlocking {
             val artifact =
-                context.getAndResolve(SimpleMavenArtifactRequest("com.sparkjava:spark-core:2.9.4"), SimpleMavenRepositorySettings.mavenCentral())().merge()
+                context.getAndResolveAsync(
+                    SimpleMavenArtifactRequest("com.sparkjava:spark-core:2.9.4"),
+                    SimpleMavenRepositorySettings.mavenCentral()
+                )
 
             artifact.prettyPrint()
         }
@@ -93,11 +79,14 @@ class ResolutionTest {
 
         )
 
-        launch {
+        runBlocking {
             val artifact =
-                context.getAndResolve(SimpleMavenArtifactRequest("org.jetbrains.kotlin:kotlin-stdlib:1.9.21"),SimpleMavenRepositorySettings.default(
-                    url = "https://repo.maven.apache.org/maven2/"
-                ))().merge()
+                context.getAndResolveAsync(
+                    SimpleMavenArtifactRequest("org.jetbrains.kotlin:kotlin-stdlib:1.9.21"),
+                    SimpleMavenRepositorySettings.default(
+                        url = "https://repo.maven.apache.org/maven2/"
+                    )
+                )
 
             artifact.prettyPrint()
         }
@@ -110,41 +99,34 @@ class ResolutionTest {
 
         )
 
-        launch {
-            runBlocking {
-                // Can take up to a second to get the ktor client setup...
-                KtorInstance.client
-                val time = System.currentTimeMillis()
-                val artifact =
-                    context.getAndResolveAsync(SimpleMavenArtifactRequest("dev.extframework.minecraft:minecraft-provider-def:2.0.13-SNAPSHOT"),SimpleMavenRepositorySettings.default(
-                        url = "https://maven.extframework.dev/snapshots"
-                    ))().merge()
+        runBlocking {
+            // Can take up to a second to get the ktor client setup...
+            KtorInstance.client
+            val time = System.currentTimeMillis()
+            val artifact = context.getAndResolveAsync(
+                SimpleMavenArtifactRequest("dev.extframework.minecraft:minecraft-provider-def:2.0.13-SNAPSHOT"),
+                SimpleMavenRepositorySettings.default(
+                    url = "https://maven.extframework.dev/snapshots"
+                )
+            )
 
-                println(System.currentTimeMillis() - time)
-
-//                artifact.prettyPrint()
-            }
+            println(System.currentTimeMillis() - time)
         }
     }
 
     @Test
     fun `Test snapshot artifact resolution`() {
-        val context = SimpleMaven.createContext(
+        val context = SimpleMaven.createContext()
 
-        )
-
-        launch {
+        runBlocking {
             val artifact: Artifact<SimpleMavenArtifactMetadata> =
-                context.getAndResolve(SimpleMavenArtifactRequest("net.minecrell:ServerListPlus:3.5.0-SNAPSHOT"),SimpleMavenRepositorySettings.default(
-                    "https://repo.codemc.io/repository/maven-snapshots",
-                    preferredHash = ResourceAlgorithm.SHA1
-                ))().merge()
-
-//            runBlocking {
-//                artifact.prettyPrint {
-//                    it.metadata.descriptor.toString() + " @ " + (it.metadata.jar()?.location ?: "POM")
-//                }
-//            }
+                context.getAndResolveAsync(
+                    SimpleMavenArtifactRequest("net.minecrell:ServerListPlus:3.5.0-SNAPSHOT"),
+                    SimpleMavenRepositorySettings.default(
+                        "https://repo.codemc.io/repository/maven-snapshots",
+                        preferredHash = ResourceAlgorithm.SHA1
+                    )
+                )
 
 
             artifactTree("net.minecrell:ServerListPlus:3.5.0-SNAPSHOT") {

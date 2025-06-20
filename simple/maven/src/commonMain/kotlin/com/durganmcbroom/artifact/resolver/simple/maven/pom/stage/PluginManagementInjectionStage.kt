@@ -5,8 +5,6 @@ import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomBuild
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomPlugin
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomProcessStage
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.SuccessfulJob
 
 internal class PluginManagementInjectionStage :
     PomProcessStage<PrimaryInterpolationStage.PrimaryInterpolationData, PluginManagementInjectionStage.PluginManagementInjectionData> {

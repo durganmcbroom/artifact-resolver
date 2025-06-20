@@ -4,7 +4,6 @@ package com.durganmcbroom.artifact.resolver.simple.maven.pom
 
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRepository
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.stage.*
-import com.durganmcbroom.jobs.*
 import com.durganmcbroom.resources.Resource
 
 private val parentResolutionStage = ParentResolutionStage()
@@ -29,10 +28,10 @@ public suspend fun SimpleMavenArtifactRepository.parsePom(data: PomData, locatio
             .let { pluginLoadingStage.process(it) }
             .let { secondaryInterpolationStage.process(it) }
             .let { dependencyManagementInjector.process(it) }.data
-    }.mapException { PomException.AssembleException(it, location) }.getOrThrow()
+    }.getOrElse { throw PomException.AssembleException(it, location) }
 
 public const val SUPER_POM_PATH: String = "/pom-4.0.0.xml"
 
-public expect suspend fun getSuperPom() : PomData
+public expect suspend fun getSuperPom(): PomData
 
 public expect suspend fun parseData(resource: Resource): PomData

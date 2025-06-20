@@ -2,8 +2,6 @@ package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRepository
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.SuccessfulJob
 import kotlin.reflect.KProperty1
 
 internal class PomInheritanceAssemblyStage :

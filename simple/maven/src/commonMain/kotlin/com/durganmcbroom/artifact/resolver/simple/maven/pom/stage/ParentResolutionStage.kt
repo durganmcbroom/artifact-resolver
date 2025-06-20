@@ -8,7 +8,6 @@ import com.durganmcbroom.artifact.resolver.simple.maven.layout.ResourceRetrieval
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenDefaultLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
-import com.durganmcbroom.jobs.async.mapAsync
 import com.durganmcbroom.resources.ResourceException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -31,15 +30,15 @@ internal class ParentResolutionStage : PomProcessStage<WrappedPomData, ParentRes
         suspend fun recursivelyLoadParents(
             child: PomData,
             thisLayout: SimpleMavenRepositoryLayout
-        ): List<PomData> {
-            val parent: PomParent = child.parent ?: return listOf(getSuperPom())
+        ): List<PomData> = coroutineScope {
+            val parent: PomParent = child.parent ?: return@coroutineScope listOf(getSuperPom())
 
             // Dont need resource verification, only loading poms.
             val mavenCentral = SimpleMavenDefaultLayout(
                 MAVEN_CENTRAL_REPO,
                 repo.settings.preferredHash,
                 true, false,
-                { _, _ -> false}
+                { _, _ -> false }
             )
             val immediateRepos = listOf(thisLayout, mavenCentral) + child.repositories.map {
                 SimpleMavenDefaultLayout(
@@ -47,7 +46,7 @@ internal class ParentResolutionStage : PomProcessStage<WrappedPomData, ParentRes
                     repo.settings.preferredHash,
                     it.releases.enabled,
                     it.snapshots.enabled,
-                    { _, _ -> false}
+                    { _, _ -> false }
                 )
             }
 
@@ -60,19 +59,21 @@ internal class ParentResolutionStage : PomProcessStage<WrappedPomData, ParentRes
 
             val parentJob = poms[key] ?: coroutineScope {
                 val job = async {
-                    val resource = immediateRepos.mapAsync {
-                        try {
-                            it.resourceOf(
-                                parent.groupId,
-                                parent.artifactId,
-                                parent.version,
-                                null,
-                                "pom"
-                            )
-                        } catch (_: ResourceException) {
-                            null
-                        } catch (_: ResourceRetrievalException) {
-                            null
+                    val resource = immediateRepos.map {
+                        async {
+                            try {
+                                it.resourceOf(
+                                    parent.groupId,
+                                    parent.artifactId,
+                                    parent.version,
+                                    null,
+                                    "pom"
+                                )
+                            } catch (_: ResourceException) {
+                                null
+                            } catch (_: ResourceRetrievalException) {
+                                null
+                            }
                         }
                     }.awaitAll().firstNotNullOfOrNull { it }
                         ?: throw (PomException.PomNotFound(
@@ -91,7 +92,7 @@ internal class ParentResolutionStage : PomProcessStage<WrappedPomData, ParentRes
 
             val parentData = parentJob.await()
 
-            return listOf(parentData) + recursivelyLoadParents(parentData, thisLayout)
+            listOf(parentData) + recursivelyLoadParents(parentData, thisLayout)
         }
 
         return ParentResolutionData(data, i.thisRepo, recursivelyLoadParents(data, i.thisRepo.layout))
