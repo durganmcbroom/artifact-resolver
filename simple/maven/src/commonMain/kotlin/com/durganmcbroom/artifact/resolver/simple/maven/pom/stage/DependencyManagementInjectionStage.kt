@@ -6,11 +6,9 @@ import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenReposi
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.*
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.stage.DependencyManagementInjectionStage.DependencyManagementInjectionData
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.stage.SecondaryInterpolationStage.SecondaryInterpolationData
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.JobName
-import com.durganmcbroom.jobs.async.mapAsync
-import com.durganmcbroom.jobs.job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 internal class DependencyManagementInjectionStage :
     PomProcessStage<SecondaryInterpolationData, DependencyManagementInjectionData> {
@@ -18,7 +16,7 @@ internal class DependencyManagementInjectionStage :
 
     override suspend fun process(
         i: SecondaryInterpolationData
-    ): DependencyManagementInjectionData {
+    ): DependencyManagementInjectionData = coroutineScope {
         val (data, repo) = i
 
         val layouts = listOf(repo.layout) + data.repositories.map {
@@ -44,22 +42,24 @@ internal class DependencyManagementInjectionStage :
 
         val boms = data.dependencyManagement.dependencies
             .filter { it.scope == "import" }
-            .mapAsync { bom ->
-                val bomResource = layouts.firstNotNullOfOrNull { l ->
-                    l.resourceOf(
-                        bom.groupId,
-                        bom.artifactId,
-                        bom.version,
-                        null,
-                        "pom"
+            .map { bom ->
+                async {
+                    val bomResource = layouts.firstNotNullOfOrNull { l ->
+                        l.resourceOf(
+                            bom.groupId,
+                            bom.artifactId,
+                            bom.version,
+                            null,
+                            "pom"
+                        )
+                    } ?: throw PomException.PomNotFound(
+                        "'${bom.groupId}:${bom.artifactId}:${bom.version}'",
+                        layouts.map(SimpleMavenRepositoryLayout::name),
+                        this@DependencyManagementInjectionStage
                     )
-                } ?: throw PomException.PomNotFound(
-                    "'${bom.groupId}:${bom.artifactId}:${bom.version}'",
-                    layouts.map(SimpleMavenRepositoryLayout::name),
-                    this@DependencyManagementInjectionStage
-                )
 
-                parseData(bomResource)
+                    parseData(bomResource)
+                }
             }.awaitAll()
 
         val managedDependencies =
@@ -81,7 +81,7 @@ internal class DependencyManagementInjectionStage :
             dependencies = dependencies
         )
 
-        return DependencyManagementInjectionData(newData, repo)
+        DependencyManagementInjectionData(newData, repo)
     }
 
     data class DependencyManagementInjectionData(

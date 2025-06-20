@@ -5,8 +5,6 @@ import com.durganmcbroom.artifact.resolver.simple.maven.plugin.SimpleMavenPlugin
 import com.durganmcbroom.artifact.resolver.simple.maven.plugin.SimplePluginConfiguration
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomProcessStage
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.SuccessfulJob
 
 // Maven extensions are also considered plugins
 internal class PluginLoadingStage :

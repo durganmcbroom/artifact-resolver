@@ -1,7 +1,5 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.pom
 
-import com.durganmcbroom.jobs.Job
-
 // Stages :
 // Parent Resolution
 // Inheritance Assembly

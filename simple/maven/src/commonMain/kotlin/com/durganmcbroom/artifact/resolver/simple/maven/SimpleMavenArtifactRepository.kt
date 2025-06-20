@@ -1,14 +1,11 @@
 package com.durganmcbroom.artifact.resolver.simple.maven
 
-import com.durganmcbroom.artifact.resolver.*
+import com.durganmcbroom.artifact.resolver.ArtifactRepository
+import com.durganmcbroom.artifact.resolver.MetadataRequestException
+import com.durganmcbroom.artifact.resolver.RepositoryFactory
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenDefaultLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.layout.SimpleMavenRepositoryLayout
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.parsePom
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.async.AsyncJob
-import com.durganmcbroom.jobs.async.asyncJob
-import com.durganmcbroom.jobs.job
-import com.durganmcbroom.jobs.mapException
 import com.durganmcbroom.resources.Resource
 import com.durganmcbroom.resources.ResourceNotFoundException
 
@@ -19,9 +16,9 @@ public open class SimpleMavenArtifactRepository(
     public open val layout: SimpleMavenRepositoryLayout by settings::layout
     override val name: String = "simple-maven@${settings.layout.name}"
 
-    override fun get(
+    override suspend fun get(
         request: SimpleMavenArtifactRequest
-    ): AsyncJob<SimpleMavenArtifactMetadata> = asyncJob {
+    ): SimpleMavenArtifactMetadata {
         val metadata = requestMetadata(request.descriptor) {
             request.withNewDescriptor(it)
         }
@@ -33,7 +30,7 @@ public open class SimpleMavenArtifactRepository(
         val allowedChildren =
             scopedChildren.filterNot { request.excludeArtifacts.contains(it.request.descriptor.artifact) }
 
-        SimpleMavenArtifactMetadata(
+        return SimpleMavenArtifactMetadata(
             metadata.descriptor,
             allowedChildren
         ) {

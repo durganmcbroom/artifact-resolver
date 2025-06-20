@@ -6,8 +6,6 @@ import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomProcessStage
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.stage.PluginLoadingStage.PluginLoadingData
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.stage.SecondaryInterpolationStage.SecondaryInterpolationData
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.SuccessfulJob
 
 internal class SecondaryInterpolationStage : PomProcessStage<PluginLoadingData, SecondaryInterpolationData> {
     override val name: String = "Secondary interpolation"

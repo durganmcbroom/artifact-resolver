@@ -3,8 +3,6 @@ package com.durganmcbroom.artifact.resolver.simple.maven.pom.stage
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRepository
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomData
 import com.durganmcbroom.artifact.resolver.simple.maven.pom.PomProcessStage
-import com.durganmcbroom.jobs.Job
-import com.durganmcbroom.jobs.SuccessfulJob
 
 internal class PrimaryInterpolationStage :
     PomProcessStage<PomInheritanceAssemblyStage.AssembledPomData, PrimaryInterpolationStage.PrimaryInterpolationData> {
