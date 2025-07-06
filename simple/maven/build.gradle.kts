@@ -105,7 +105,7 @@ publishing {
                 val repositoriesNode = asNode().appendNode("repositories")
                 val yakclientRepositoryNode = repositoriesNode.appendNode("repository")
                 yakclientRepositoryNode.appendNode("id", "extframework")
-                yakclientRepositoryNode.appendNode("url", "https://maven.extframework.dev/snapshots")
+                yakclientRepositoryNode.appendNode("url", "https://maven.durganmcbroom.com/snapshots")
             }
 
             licenses {

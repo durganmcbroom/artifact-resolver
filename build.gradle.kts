@@ -65,7 +65,7 @@ allprojects {
     repositories {
         mavenCentral()
         maven {
-            url = uri("https://maven.extframework.dev/snapshots")
+            url = uri("https://maven.durganmcbroom.com/snapshots")
         }
     }
 
@@ -90,8 +90,7 @@ allprojects {
     publishing {
         repositories {
             maven {
-                name = "extframework-repo"
-                url = uri("https://maven.extframework.dev/snapshots")
+                url = uri("https://maven.durganmcbroom.com/snapshots")
 
                 credentials {
                     username = project.findProperty("maven.user") as String?
@@ -140,8 +139,8 @@ publishing {
             withXml {
                 val repositoriesNode = asNode().appendNode("repositories")
                 val yakclientRepositoryNode = repositoriesNode.appendNode("repository")
-                yakclientRepositoryNode.appendNode("id", "extframework")
-                yakclientRepositoryNode.appendNode("url", "https://maven.extframework.dev/snapshots")
+                yakclientRepositoryNode.appendNode("id", "durganmcbroom")
+                yakclientRepositoryNode.appendNode("url", "https://maven.durganmcbroom.com/snapshots")
             }
 
             licenses {

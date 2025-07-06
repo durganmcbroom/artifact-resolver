@@ -18,7 +18,7 @@ class TestResolveSources {
                     "dev.extframework:boot:3.6.2-SNAPSHOT:sources"
                 ),
                 SimpleMavenRepositorySettings.default(
-                    url = "https://maven.extframework.dev/snapshots"
+                    url = "https://maven.durganmcbroom.com/snapshots"
                 )
             )
 
