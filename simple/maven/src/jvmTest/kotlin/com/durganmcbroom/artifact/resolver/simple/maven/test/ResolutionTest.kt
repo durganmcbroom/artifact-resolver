@@ -106,7 +106,7 @@ class ResolutionTest {
             val artifact = context.getAndResolveAsync(
                 SimpleMavenArtifactRequest("dev.extframework.minecraft:minecraft-provider-def:2.0.13-SNAPSHOT"),
                 SimpleMavenRepositorySettings.default(
-                    url = "https://maven.extframework.dev/snapshots"
+                    url = "https://maven.durganmcbroom.com/snapshots"
                 )
             )
 

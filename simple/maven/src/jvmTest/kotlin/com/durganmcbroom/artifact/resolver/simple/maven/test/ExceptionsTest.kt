@@ -63,7 +63,7 @@ class ExceptionsTest {
             try {
                 context.getAndResolveAsync(
                     SimpleMavenArtifactRequest("a:a:a"), SimpleMavenRepositorySettings.default(
-                        "https://maven.extframework.dev/snapshots",
+                        "https://maven.durganmcbroom.com/snapshots",
                         preferredHash = ResourceAlgorithm.SHA1
                     )
                 )
@@ -85,7 +85,7 @@ class ExceptionsTest {
             try {
                 context.getAndResolveAsync(
                     SimpleMavenArtifactRequest("a:a:a-SNAPSHOT"), SimpleMavenRepositorySettings.default(
-                        "https://maven.extframework.dev/snapshots",
+                        "https://maven.durganmcbroom.com/snapshots",
                         preferredHash = ResourceAlgorithm.SHA1
                     )
                 )
@@ -107,7 +107,7 @@ class ExceptionsTest {
                 context.getAndResolveAsync(
                     SimpleMavenArtifactRequest("dev.extframework:ext-loader:a-SNAPSHOT"),
                     SimpleMavenRepositorySettings.default(
-                        "https://maven.extframework.dev/snapshots",
+                        "https://maven.durganmcbroom.com/snapshots",
                         preferredHash = ResourceAlgorithm.SHA1
                     )
                 )
