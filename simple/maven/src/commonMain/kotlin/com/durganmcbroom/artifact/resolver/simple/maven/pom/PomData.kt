@@ -66,10 +66,10 @@ public data class PomRepository(
                 layout.location,
                 "default",
                 PomRepositoryPolicy(
-                    layout.releasesEnabled
+                    true
                 ),
                 PomRepositoryPolicy(
-                    layout.snapshotsEnabled
+                    true
                 )
             )
         }

@@ -37,15 +37,12 @@ internal class ParentResolutionStage : PomProcessStage<WrappedPomData, ParentRes
             val mavenCentral = SimpleMavenDefaultLayout(
                 MAVEN_CENTRAL_REPO,
                 repo.settings.preferredHash,
-                true, false,
                 { _, _ -> false }
             )
             val immediateRepos = listOf(thisLayout, mavenCentral) + child.repositories.map {
                 SimpleMavenDefaultLayout(
                     it.url,
                     repo.settings.preferredHash,
-                    it.releases.enabled,
-                    it.snapshots.enabled,
                     { _, _ -> false }
                 )
             }

@@ -28,7 +28,7 @@ public open class SimpleMavenReleaseFacet(
     protected suspend fun String.resourceAt(
         resource: String,
         algorithm: ResourceAlgorithm,
-        requireResourceVerification: Boolean,
+        verify: Boolean,
     ): Resource =
         verifiedResourceOf(
             "$this/$resource",
@@ -41,7 +41,7 @@ public open class SimpleMavenReleaseFacet(
                 "$this/$resource.$ending"
             },
             algorithm,
-            requireResourceVerification
+            verify
         )
 
     protected fun baseArtifact(g: String, a: String): String =

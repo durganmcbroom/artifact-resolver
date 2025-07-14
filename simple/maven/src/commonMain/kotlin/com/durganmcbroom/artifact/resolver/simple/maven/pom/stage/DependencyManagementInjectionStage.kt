@@ -31,8 +31,6 @@ internal class DependencyManagementInjectionStage :
             SimpleMavenDefaultLayout(
                 it.url,
                 repo.settings.preferredHash,
-                it.releases.enabled,
-                it.snapshots.enabled,
                 { _, _ ->
                     // Only loading poms
                     false

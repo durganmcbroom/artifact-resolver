@@ -18,15 +18,13 @@ public open class SimpleMavenRepositorySettings @JvmOverloads constructor(
         @JvmOverloads
         public fun default(
             url: String,
-            releasesEnabled: Boolean = true,
-            snapshotsEnabled: Boolean = true,
             preferredHash: ResourceAlgorithm = ResourceAlgorithm.SHA1,
             pluginProvider: SimplePluginProvider = SimplePluginProvider { _, _, _, _ -> null },
             requireResourceVerification: Boolean = false
         ): SimpleMavenRepositorySettings = SimpleMavenRepositorySettings(
             SimpleMavenDefaultLayout(
                 url,
-                preferredHash, releasesEnabled, snapshotsEnabled
+                preferredHash
             ) { _, type ->
                 if (type == "pom") false else requireResourceVerification
             },
@@ -42,8 +40,6 @@ public open class SimpleMavenRepositorySettings @JvmOverloads constructor(
             pluginProvider: SimplePluginProvider = SimplePluginProvider { _, _, _, _ -> null },
         ): SimpleMavenRepositorySettings = default(
             MAVEN_CENTRAL_REPO,
-            releasesEnabled = true,
-            snapshotsEnabled = false,
             preferredHash,
             pluginProvider,
             true

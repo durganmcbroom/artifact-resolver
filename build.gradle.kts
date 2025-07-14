@@ -60,7 +60,7 @@ allprojects {
     apply(plugin = "org.jetbrains.dokka")
 
     group = "com.durganmcbroom"
-    version = "1.5-SNAPSHOT"
+    version = "1.5.1-SNAPSHOT"
 
     repositories {
         mavenCentral()

@@ -24,11 +24,7 @@ internal actual suspend fun verifiedResourceOf(
     }
 
     if (checksum.isFailure) {
-        throw ResourceRetrievalException.ChecksumFileNotFound(
-            location,
-            algorithm.name,
-            checksum.exceptionOrNull()!!
-        )
+        return unverifiedResource
     }
 
     val checkString = String(checksum.getOrNull()!!.open().toByteArray())

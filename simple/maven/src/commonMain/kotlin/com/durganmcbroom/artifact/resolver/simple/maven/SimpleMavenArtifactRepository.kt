@@ -60,8 +60,6 @@ public open class SimpleMavenArtifactRepository(
             SimpleMavenRepositorySettings(
                 SimpleMavenDefaultLayout(
                     it.url, settings.preferredHash,
-                    it.releases.enabled,
-                    it.snapshots.enabled,
                     { classifier, type ->
                         if (type == "pom") false else settings.requireResourceVerification
                     }

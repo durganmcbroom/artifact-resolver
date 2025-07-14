@@ -1,10 +1,12 @@
 package com.durganmcbroom.artifact.resolver.simple.maven.test
 
 import com.durganmcbroom.artifact.resolver.Artifact
+import com.durganmcbroom.artifact.resolver.ArtifactMetadata
 import com.durganmcbroom.artifact.resolver.createContext
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMaven
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactMetadata
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenArtifactRequest
+import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenDescriptor
 import com.durganmcbroom.artifact.resolver.simple.maven.SimpleMavenRepositorySettings
 import com.durganmcbroom.resources.KtorInstance
 import com.durganmcbroom.resources.ResourceAlgorithm
@@ -94,21 +96,32 @@ class ResolutionTest {
 
     @Test
     fun `Test large artifact`() {
-        BlockHound.install(CoroutinesBlockHoundIntegration())
-        val context = SimpleMaven.createContext(
-
-        )
+        val context = SimpleMaven.createContext()
 
         runBlocking {
             // Can take up to a second to get the ktor client setup...
             KtorInstance.client
             val time = System.currentTimeMillis()
             val artifact = context.getAndResolveAsync(
-                SimpleMavenArtifactRequest("dev.extframework.minecraft:minecraft-provider-def:2.0.13-SNAPSHOT"),
+                SimpleMavenArtifactRequest("com.kaolinmc:gradle-api:1.1.4-SNAPSHOT"),
                 SimpleMavenRepositorySettings.default(
-                    url = "https://maven.durganmcbroom.com/snapshots"
+                    url = "https://maven.kaolinmc.com/snapshots"
                 )
             )
+
+            val descriptors = HashSet<SimpleMavenDescriptor>()
+            suspend fun Artifact<SimpleMavenArtifactMetadata>.walk(
+            ) {
+                if (!descriptors.add(metadata.descriptor)) return
+                this.metadata.jar()?.open()?.collect { }
+                println(metadata.descriptor)
+
+                parents.forEach {
+                    it.walk()
+                }
+            }
+
+            artifact.walk()
 
             println(System.currentTimeMillis() - time)
         }

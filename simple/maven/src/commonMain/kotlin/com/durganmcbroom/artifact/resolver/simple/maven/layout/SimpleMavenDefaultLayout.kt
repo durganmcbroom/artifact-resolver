@@ -6,8 +6,6 @@ import com.durganmcbroom.resources.ResourceAlgorithm
 public open class SimpleMavenDefaultLayout(
     final override val location: String,
     preferredAlgorithm: ResourceAlgorithm,
-    public val releasesEnabled: Boolean,
-    public val snapshotsEnabled: Boolean,
     verify: (classifier: String?, type: String) -> Boolean,
 ) : SimpleMavenRepositoryLayout {
     override val name: String = "default@$location"
@@ -21,39 +19,30 @@ public open class SimpleMavenDefaultLayout(
         version: String,
         classifier: String?,
         type: String
-    ): Resource =
-        (if (version.endsWith("-SNAPSHOT") && snapshotsEnabled) {
-            snapshotFacet
-        } else if (releasesEnabled) {
-            releaseFacet
-        } else {
-            null
-        })?.resourceOf(
-            groupId,
-            artifactId,
-            version,
-            classifier,
-            type
-        ) ?: throw ResourceRetrievalException.NoEnabledFacet(
-            "$groupId:$artifactId:$version:${classifier?.let { "-$it" } ?: ""}:$type",
-            this@SimpleMavenDefaultLayout
-        )
+    ): Resource = (if (version.endsWith("-SNAPSHOT")) {
+        snapshotFacet
+    } else {
+        releaseFacet
+    }).resourceOf(
+        groupId,
+        artifactId,
+        version,
+        classifier,
+        type
+    )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is SimpleMavenDefaultLayout) return false
 
-        if (releasesEnabled != other.releasesEnabled) return false
-        if (snapshotsEnabled != other.snapshotsEnabled) return false
         if (location != other.location) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = releasesEnabled.hashCode()
-        result = 31 * result + snapshotsEnabled.hashCode()
-        result = 31 * result + location.hashCode()
+        var result = location.hashCode()
+        result = 31 * result + name.hashCode()
         return result
     }
 }
